@@ -1,13 +1,14 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 2.0.0
+    Версия: 2.1.0
 ]]
 
 local Library = {}
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 -- Создаем основной GUI
 local GUI = Instance.new("ScreenGui")
@@ -24,6 +25,8 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local UIElements = {}
 local Sections = {}
 local CurrentTab = "MAIN"
+local ToggleStates = {} -- Для хранения состояний тумблеров
+local SliderValues = {} -- Для хранения значений ползунков
 
 function Library:CreateLib(title, theme)
     -- Игнорируем тему, используем свой черно-белый стиль
@@ -334,6 +337,7 @@ function Library:NewTab(name)
         
         section.YPosition = section.YPosition + 40
         
+        -- Кнопка
         function SectionObject:NewButton(buttonName, description, callback)
             local yPos = section.YPosition
             
@@ -398,10 +402,249 @@ function Library:NewTab(name)
             section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
         end
         
+        -- Тумблер (рычаг)
+        function SectionObject:NewToggle(toggleName, description, callback)
+            local yPos = section.YPosition
+            local toggleId = tostring(math.random(10000, 99999))
+            
+            local toggleFrame = Instance.new("Frame")
+            toggleFrame.Size = UDim2.new(1, 0, 0, 50)
+            toggleFrame.Position = UDim2.new(0, 0, 0, yPos)
+            toggleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            toggleFrame.BorderSizePixel = 2
+            toggleFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+            toggleFrame.Parent = container
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, -80, 0, 25)
+            nameLabel.Position = UDim2.new(0, 10, 0, 5)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = toggleName
+            nameLabel.TextColor3 = CurrentColor
+            nameLabel.TextSize = 16
+            nameLabel.Font = Enum.Font.Code
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.Parent = toggleFrame
+            
+            local descLabel = Instance.new("TextLabel")
+            descLabel.Size = UDim2.new(1, -80, 0, 20)
+            descLabel.Position = UDim2.new(0, 10, 0, 25)
+            descLabel.BackgroundTransparency = 1
+            descLabel.Text = description or ""
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+            descLabel.TextSize = 12
+            descLabel.Font = Enum.Font.Code
+            descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            descLabel.Parent = toggleFrame
+            
+            -- Рычаг (тумблер)
+            local toggleBg = Instance.new("Frame")
+            toggleBg.Size = UDim2.new(0, 50, 0, 24)
+            toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
+            toggleBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            toggleBg.BorderSizePixel = 2
+            toggleBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
+            toggleBg.Parent = toggleFrame
+            
+            local toggleIndicator = Instance.new("Frame")
+            toggleIndicator.Size = UDim2.new(0, 20, 0, 16)
+            toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
+            toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            toggleIndicator.BorderSizePixel = 1
+            toggleIndicator.BorderColor3 = Color3.fromRGB(140, 140, 140)
+            toggleIndicator.Parent = toggleBg
+            
+            local toggleState = false
+            ToggleStates[toggleId] = false
+            
+            local function updateToggle()
+                if toggleState then
+                    -- Включено
+                    toggleIndicator.BackgroundColor3 = CurrentColor
+                    toggleIndicator.Position = UDim2.new(1, -22, 0.5, -8)
+                else
+                    -- Выключено
+                    toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+                    toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
+                end
+            end
+            
+            local toggleButton = Instance.new("TextButton")
+            toggleButton.Size = UDim2.new(1, 0, 1, 0)
+            toggleButton.BackgroundTransparency = 1
+            toggleButton.Text = ""
+            toggleButton.Parent = toggleFrame
+            
+            toggleButton.MouseButton1Click:Connect(function()
+                toggleState = not toggleState
+                ToggleStates[toggleId] = toggleState
+                updateToggle()
+                
+                if callback then
+                    local success, err = pcall(function()
+                        callback(toggleState)
+                    end)
+                    if not success then
+                        warn("Error in toggle callback: " .. err)
+                    end
+                end
+            end)
+            
+            -- Функция для получения состояния тумблера
+            function SectionObject:GetToggleState()
+                return toggleState
+            end
+            
+            section.YPosition = yPos + 60
+            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+        end
+        
+        -- Ползунок
+        function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
+            local yPos = section.YPosition
+            local sliderId = tostring(math.random(10000, 99999))
+            
+            local sliderFrame = Instance.new("Frame")
+            sliderFrame.Size = UDim2.new(1, 0, 0, 70)
+            sliderFrame.Position = UDim2.new(0, 0, 0, yPos)
+            sliderFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            sliderFrame.BorderSizePixel = 2
+            sliderFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+            sliderFrame.Parent = container
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, -20, 0, 25)
+            nameLabel.Position = UDim2.new(0, 10, 0, 5)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = sliderName
+            nameLabel.TextColor3 = CurrentColor
+            nameLabel.TextSize = 16
+            nameLabel.Font = Enum.Font.Code
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.Parent = sliderFrame
+            
+            local descLabel = Instance.new("TextLabel")
+            descLabel.Size = UDim2.new(1, -20, 0, 20)
+            descLabel.Position = UDim2.new(0, 10, 0, 25)
+            descLabel.BackgroundTransparency = 1
+            descLabel.Text = description or ""
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+            descLabel.TextSize = 12
+            descLabel.Font = Enum.Font.Code
+            descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            descLabel.Parent = sliderFrame
+            
+            -- Значение ползунка
+            local valueLabel = Instance.new("TextLabel")
+            valueLabel.Size = UDim2.new(0, 50, 0, 20)
+            valueLabel.Position = UDim2.new(1, -60, 0, 28)
+            valueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            valueLabel.BorderSizePixel = 1
+            valueLabel.BorderColor3 = Color3.fromRGB(80, 80, 80)
+            valueLabel.Text = tostring(default or min)
+            valueLabel.TextColor3 = CurrentColor
+            valueLabel.TextSize = 12
+            valueLabel.Font = Enum.Font.Code
+            valueLabel.Parent = sliderFrame
+            
+            -- Полоса ползунка
+            local sliderBg = Instance.new("Frame")
+            sliderBg.Size = UDim2.new(1, -80, 0, 10)
+            sliderBg.Position = UDim2.new(0, 10, 0, 50)
+            sliderBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            sliderBg.BorderSizePixel = 1
+            sliderBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
+            sliderBg.Parent = sliderFrame
+            
+            local sliderFill = Instance.new("Frame")
+            sliderFill.Size = UDim2.new(0, 0, 1, 0)
+            sliderFill.BackgroundColor3 = CurrentColor
+            sliderFill.BorderSizePixel = 0
+            sliderFill.Parent = sliderBg
+            
+            local sliderButton = Instance.new("TextButton")
+            sliderButton.Size = UDim2.new(1, 0, 1, 0)
+            sliderButton.BackgroundTransparency = 1
+            sliderButton.Text = ""
+            sliderButton.Parent = sliderBg
+            
+            local currentValue = default or min
+            local dragging = false
+            
+            local function updateSlider(input)
+                local mousePos = input.Position
+                local absPos = sliderBg.AbsolutePosition
+                local absSize = sliderBg.AbsoluteSize.X
+                
+                local relativeX = math.clamp(mousePos.X - absPos.X, 0, absSize)
+                local percent = relativeX / absSize
+                
+                currentValue = math.floor(min + (max - min) * percent)
+                if currentValue < min then currentValue = min end
+                if currentValue > max then currentValue = max end
+                
+                sliderFill.Size = UDim2.new(percent, 0, 1, 0)
+                valueLabel.Text = tostring(currentValue)
+                SliderValues[sliderId] = currentValue
+                
+                if callback then
+                    local success, err = pcall(function()
+                        callback(currentValue)
+                    end)
+                    if not success then
+                        warn("Error in slider callback: " .. err)
+                    end
+                end
+            end
+            
+            -- Устанавливаем начальное значение
+            if default then
+                local percent = (default - min) / (max - min)
+                sliderFill.Size = UDim2.new(percent, 0, 1, 0)
+                valueLabel.Text = tostring(default)
+                SliderValues[sliderId] = default
+            end
+            
+            sliderButton.MouseButton1Down:Connect(function(input)
+                dragging = true
+                updateSlider(input)
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    updateSlider(input)
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            -- Функция для получения значения ползунка
+            function SectionObject:GetSliderValue()
+                return currentValue
+            end
+            
+            section.YPosition = yPos + 80
+            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+        end
+        
         return SectionObject
     end
     
     return TabObject
+end
+
+-- Функция для проверки состояния тумблера по ID
+function Library:GetToggleState(id)
+    return ToggleStates[id] or false
+end
+
+-- Функция для получения значения ползунка по ID
+function Library:GetSliderValue(id)
+    return SliderValues[id] or 0
 end
 
 return Library
