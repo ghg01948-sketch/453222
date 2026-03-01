@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 2.1.0
+    Версия: 2.2.0
 ]]
 
 local Library = {}
@@ -57,7 +57,7 @@ function Library:CreateLib(title, theme)
     -- Заголовок
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.Size = UDim2.new(1, 0, 0, 40) -- Увеличил высоту для большой кнопки
     titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     titleBar.BorderSizePixel = 1
     titleBar.BorderColor3 = Color3.fromRGB(60, 60, 60)
@@ -66,7 +66,7 @@ function Library:CreateLib(title, theme)
     -- Текст заголовка
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
-    titleText.Size = UDim2.new(1, -40, 1, 0)
+    titleText.Size = UDim2.new(1, -60, 1, 0) -- Уменьшил ширину для кнопки
     titleText.Position = UDim2.new(0, 10, 0, 0)
     titleText.BackgroundTransparency = 1
     titleText.Text = title or "CODE B HACK MODULE // SStwendRT"
@@ -76,18 +76,27 @@ function Library:CreateLib(title, theme)
     titleText.TextXAlignment = Enum.TextXAlignment.Left
     titleText.Parent = titleBar
     
-    -- Кнопка закрытия
+    -- Кнопка закрытия (БОЛЬШАЯ)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
-    closeBtn.Size = UDim2.new(0, 30, 0, 25)
-    closeBtn.Position = UDim2.new(1, -35, 0, 5)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    closeBtn.BorderColor3 = Color3.fromRGB(80, 80, 80)
-    closeBtn.Text = "X"
-    closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-    closeBtn.TextSize = 16
+    closeBtn.Size = UDim2.new(0, 40, 0, 30) -- Увеличена с 30x25 до 40x30
+    closeBtn.Position = UDim2.new(1, -45, 0, 5) -- Сдвинута левее
+    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Ярче фон
+    closeBtn.BorderColor3 = Color3.fromRGB(120, 120, 120) -- Ярче граница
+    closeBtn.Text = "✕" -- Жирный крестик вместо X
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст
+    closeBtn.TextSize = 20 -- Больше размер шрифта
     closeBtn.Font = Enum.Font.Code
     closeBtn.Parent = titleBar
+    
+    -- Эффект наведения на кнопку закрытия
+    closeBtn.MouseEnter:Connect(function()
+        closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0) -- Красный при наведении
+    end)
+    
+    closeBtn.MouseLeave:Connect(function()
+        closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end)
     
     closeBtn.MouseButton1Click:Connect(function()
         GUI:Destroy()
@@ -115,8 +124,8 @@ function Library:CreateLib(title, theme)
     -- Контейнер для вкладок
     ColumnsFrame = Instance.new("Frame")
     ColumnsFrame.Name = "ColumnsFrame"
-    ColumnsFrame.Size = UDim2.new(1, -20, 1, -100)
-    ColumnsFrame.Position = UDim2.new(0, 10, 0, 45)
+    ColumnsFrame.Size = UDim2.new(1, -20, 1, -105) -- Подогнал под новую высоту заголовка
+    ColumnsFrame.Position = UDim2.new(0, 10, 0, 50) -- Сдвинул вниз
     ColumnsFrame.BackgroundTransparency = 1
     ColumnsFrame.Parent = MainFrame
     
@@ -192,7 +201,7 @@ function Library:CreateLib(title, theme)
             local newHeight = math.max(400, startSize.Y.Offset + delta.Y)
             MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
             
-            ColumnsFrame.Size = UDim2.new(1, -20, 1, -100)
+            ColumnsFrame.Size = UDim2.new(1, -20, 1, -105)
             
             for _, section in pairs(Sections) do
                 if section.Frame then
@@ -321,7 +330,7 @@ function Library:NewTab(name)
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
         sectionTitle.Position = UDim2.new(0, 0, 0, section.YPosition)
         sectionTitle.BackgroundTransparency = 1
-        sectionTitle.Text = "⚡ " .. sectionName
+        sectionTitle.Text = "// " .. sectionName  -- Заменил молнию на //
         sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
         sectionTitle.TextSize = 16
         sectionTitle.Font = Enum.Font.Code
@@ -402,7 +411,7 @@ function Library:NewTab(name)
             section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
         end
         
-        -- Тумблер (рычаг)
+        -- Тумблер (рычаг) - ИСПРАВЛЕН
         function SectionObject:NewToggle(toggleName, description, callback)
             local yPos = section.YPosition
             local toggleId = tostring(math.random(10000, 99999))
@@ -480,9 +489,10 @@ function Library:NewTab(name)
                 ToggleStates[toggleId] = toggleState
                 updateToggle()
                 
+                -- ВАЖНО: Вызываем callback с правильным параметром
                 if callback then
                     local success, err = pcall(function()
-                        callback(toggleState)
+                        callback(toggleState)  -- Передаем true/false
                     end)
                     if not success then
                         warn("Error in toggle callback: " .. err)
@@ -603,6 +613,13 @@ function Library:NewTab(name)
                 sliderFill.Size = UDim2.new(percent, 0, 1, 0)
                 valueLabel.Text = tostring(default)
                 SliderValues[sliderId] = default
+                
+                -- Вызываем callback с начальным значением
+                if callback then
+                    pcall(function()
+                        callback(default)
+                    end)
+                end
             end
             
             sliderButton.MouseButton1Down:Connect(function(input)
