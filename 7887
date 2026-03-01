@@ -1,0 +1,407 @@
+--[[
+    CODE B HACK MODULE // SStwendRT
+    Библиотека для создания интерфейса
+    Версия: 2.0.0
+]]
+
+local Library = {}
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Создаем основной GUI
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "CodeBHackLibrary"
+GUI.Parent = CoreGui
+GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+GUI.ResetOnSpawn = false
+
+-- Основные переменные
+local MainFrame = nil
+local ResizeButton = nil
+local ColumnsFrame = nil
+local CurrentColor = Color3.fromRGB(180, 180, 180)
+local UIElements = {}
+local Sections = {}
+local CurrentTab = "MAIN"
+
+function Library:CreateLib(title, theme)
+    -- Игнорируем тему, используем свой черно-белый стиль
+    
+    -- Основной фрейм
+    MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 500, 0, 600)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    MainFrame.BorderSizePixel = 2
+    MainFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
+    MainFrame.Parent = GUI
+    MainFrame.Active = true
+    MainFrame.Draggable = false
+    
+    -- Тень
+    local shadow = Instance.new("Frame")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 8, 1, 8)
+    shadow.Position = UDim2.new(0, -4, 0, -4)
+    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.3
+    shadow.BorderSizePixel = 0
+    shadow.ZIndex = -1
+    shadow.Parent = MainFrame
+    
+    -- Заголовок
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    titleBar.BorderSizePixel = 1
+    titleBar.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    titleBar.Parent = MainFrame
+    
+    -- Текст заголовка
+    local titleText = Instance.new("TextLabel")
+    titleText.Name = "TitleText"
+    titleText.Size = UDim2.new(1, -40, 1, 0)
+    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = title or "CODE B HACK MODULE // SStwendRT"
+    titleText.TextColor3 = Color3.fromRGB(220, 220, 220)
+    titleText.TextSize = 16
+    titleText.Font = Enum.Font.Code
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
+    
+    -- Кнопка закрытия
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Size = UDim2.new(0, 30, 0, 25)
+    closeBtn.Position = UDim2.new(1, -35, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    closeBtn.BorderColor3 = Color3.fromRGB(80, 80, 80)
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    closeBtn.TextSize = 16
+    closeBtn.Font = Enum.Font.Code
+    closeBtn.Parent = titleBar
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        GUI:Destroy()
+    end)
+    
+    -- Кнопка изменения размера
+    ResizeButton = Instance.new("ImageButton")
+    ResizeButton.Name = "ResizeButton"
+    ResizeButton.Size = UDim2.new(0, 20, 0, 20)
+    ResizeButton.Position = UDim2.new(1, -25, 1, -25)
+    ResizeButton.BackgroundTransparency = 1
+    ResizeButton.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    ResizeButton.ImageColor3 = Color3.fromRGB(150, 150, 150)
+    ResizeButton.Parent = MainFrame
+    
+    local arrowLabel = Instance.new("TextLabel")
+    arrowLabel.Size = UDim2.new(1, 0, 1, 0)
+    arrowLabel.BackgroundTransparency = 1
+    arrowLabel.Text = "↘"
+    arrowLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    arrowLabel.TextSize = 18
+    arrowLabel.Font = Enum.Font.Code
+    arrowLabel.Parent = ResizeButton
+    
+    -- Контейнер для вкладок
+    ColumnsFrame = Instance.new("Frame")
+    ColumnsFrame.Name = "ColumnsFrame"
+    ColumnsFrame.Size = UDim2.new(1, -20, 1, -100)
+    ColumnsFrame.Position = UDim2.new(0, 10, 0, 45)
+    ColumnsFrame.BackgroundTransparency = 1
+    ColumnsFrame.Parent = MainFrame
+    
+    -- Нижняя панель
+    local bottomFrame = Instance.new("Frame")
+    bottomFrame.Name = "BottomFrame"
+    bottomFrame.Size = UDim2.new(1, -20, 0, 40)
+    bottomFrame.Position = UDim2.new(0, 10, 1, -50)
+    bottomFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    bottomFrame.BorderSizePixel = 2
+    bottomFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+    bottomFrame.Parent = MainFrame
+    
+    local versionText = Instance.new("TextLabel")
+    versionText.Size = UDim2.new(1, -10, 1, 0)
+    versionText.Position = UDim2.new(0, 5, 0, 0)
+    versionText.BackgroundTransparency = 1
+    versionText.Text = "[ SYSTEM: ACTIVE ]"
+    versionText.TextColor3 = Color3.fromRGB(130, 130, 130)
+    versionText.TextSize = 11
+    versionText.Font = Enum.Font.Code
+    versionText.TextXAlignment = Enum.TextXAlignment.Left
+    versionText.Parent = bottomFrame
+    
+    -- Перетаскивание
+    local dragging = false
+    local dragStart
+    local startPos
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    -- Изменение размера
+    local resizing = false
+    local resizeStart
+    local startSize
+    
+    ResizeButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = true
+            resizeStart = input.Position
+            startSize = MainFrame.Size
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - resizeStart
+            local newWidth = math.max(300, startSize.X.Offset + delta.X)
+            local newHeight = math.max(400, startSize.Y.Offset + delta.Y)
+            MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+            
+            ColumnsFrame.Size = UDim2.new(1, -20, 1, -100)
+            
+            for _, section in pairs(Sections) do
+                if section.Frame then
+                    section.Frame.Size = UDim2.new(1, 0, 1, 0)
+                end
+            end
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = false
+        end
+    end)
+    
+    -- Панель вкладок
+    local tabBar = Instance.new("Frame")
+    tabBar.Name = "TabBar"
+    tabBar.Size = UDim2.new(1, -20, 0, 35)
+    tabBar.Position = UDim2.new(0, 10, 0, 5)
+    tabBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    tabBar.BorderSizePixel = 1
+    tabBar.BorderColor3 = Color3.fromRGB(50, 50, 50)
+    tabBar.Parent = MainFrame
+    
+    UIElements.TabBar = tabBar
+    
+    return self
+end
+
+function Library:NewTab(name)
+    local tabBar = UIElements.TabBar
+    local tabCount = 0
+    
+    for _, v in pairs(UIElements) do
+        if v:IsA("TextButton") and v.Parent == tabBar then
+            tabCount = tabCount + 1
+        end
+    end
+    
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = "Tab_" .. name
+    tabButton.Size = UDim2.new(0, 100, 1, -2)
+    tabButton.Position = UDim2.new(0, (tabCount * 105) + 5, 0, 1)
+    tabButton.BackgroundTransparency = 1
+    tabButton.Text = name
+    tabButton.TextColor3 = (tabCount == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)
+    tabButton.TextSize = 14
+    tabButton.Font = Enum.Font.Code
+    tabButton.BorderSizePixel = 0
+    tabButton.Parent = tabBar
+    
+    if tabCount == 0 then
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, 0, 0, 2)
+        line.Position = UDim2.new(0, 0, 1, -2)
+        line.BackgroundColor3 = CurrentColor
+        line.BorderSizePixel = 0
+        line.Parent = tabButton
+        UIElements.ActiveLine = line
+    end
+    
+    -- Создаем секцию для этой вкладки
+    local section = Instance.new("ScrollingFrame")
+    section.Name = name .. "Section"
+    section.Size = UDim2.new(1, 0, 1, 0)
+    section.Position = UDim2.new(0, 0, 0, 0)
+    section.BackgroundTransparency = 1
+    section.BorderSizePixel = 0
+    section.CanvasSize = UDim2.new(0, 0, 0, 0)
+    section.ScrollBarThickness = 8
+    section.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+    section.Parent = ColumnsFrame
+    section.Visible = (tabCount == 0)
+    
+    local container = Instance.new("Frame")
+    container.Name = "Container"
+    container.Size = UDim2.new(1, -20, 1, -20)
+    container.Position = UDim2.new(0, 10, 0, 10)
+    container.BackgroundTransparency = 1
+    container.Parent = section
+    
+    Sections[name] = {
+        Frame = section,
+        Container = container,
+        YPosition = 0
+    }
+    
+    UIElements[name] = tabButton
+    
+    tabButton.MouseButton1Click:Connect(function()
+        CurrentTab = name
+        
+        for _, btn in pairs(UIElements) do
+            if btn:IsA("TextButton") and btn.Parent == tabBar then
+                btn.TextColor3 = Color3.fromRGB(140, 140, 140)
+            end
+        end
+        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        if UIElements.ActiveLine then
+            UIElements.ActiveLine:Destroy()
+        end
+        
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, 0, 0, 2)
+        line.Position = UDim2.new(0, 0, 1, -2)
+        line.BackgroundColor3 = CurrentColor
+        line.BorderSizePixel = 0
+        line.Parent = tabButton
+        UIElements.ActiveLine = line
+        
+        for tabName, section in pairs(Sections) do
+            section.Frame.Visible = (tabName == name)
+        end
+    end)
+    
+    local TabObject = {}
+    
+    function TabObject:NewSection(sectionName)
+        local SectionObject = {}
+        local section = Sections[name]
+        local container = section.Container
+        
+        local sectionTitle = Instance.new("TextLabel")
+        sectionTitle.Size = UDim2.new(1, 0, 0, 30)
+        sectionTitle.Position = UDim2.new(0, 0, 0, section.YPosition)
+        sectionTitle.BackgroundTransparency = 1
+        sectionTitle.Text = "⚡ " .. sectionName
+        sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
+        sectionTitle.TextSize = 16
+        sectionTitle.Font = Enum.Font.Code
+        sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+        sectionTitle.Parent = container
+        
+        local sectionLine = Instance.new("Frame")
+        sectionLine.Size = UDim2.new(1, 0, 0, 2)
+        sectionLine.Position = UDim2.new(0, 0, 0, section.YPosition + 25)
+        sectionLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        sectionLine.BorderSizePixel = 0
+        sectionLine.Parent = container
+        
+        section.YPosition = section.YPosition + 40
+        
+        function SectionObject:NewButton(buttonName, description, callback)
+            local yPos = section.YPosition
+            
+            local buttonFrame = Instance.new("Frame")
+            buttonFrame.Size = UDim2.new(1, 0, 0, 60)
+            buttonFrame.Position = UDim2.new(0, 0, 0, yPos)
+            buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            buttonFrame.BorderSizePixel = 2
+            buttonFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+            buttonFrame.Parent = container
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, -20, 0, 25)
+            nameLabel.Position = UDim2.new(0, 10, 0, 5)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = buttonName
+            nameLabel.TextColor3 = CurrentColor
+            nameLabel.TextSize = 16
+            nameLabel.Font = Enum.Font.Code
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.Parent = buttonFrame
+            
+            local descLabel = Instance.new("TextLabel")
+            descLabel.Size = UDim2.new(1, -20, 0, 20)
+            descLabel.Position = UDim2.new(0, 10, 0, 30)
+            descLabel.BackgroundTransparency = 1
+            descLabel.Text = description or ""
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+            descLabel.TextSize = 12
+            descLabel.Font = Enum.Font.Code
+            descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            descLabel.Parent = buttonFrame
+            
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(1, 0, 1, 0)
+            button.BackgroundTransparency = 1
+            button.Text = ""
+            button.Parent = buttonFrame
+            
+            button.MouseEnter:Connect(function()
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            end)
+            
+            button.MouseLeave:Connect(function()
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            end)
+            
+            button.MouseButton1Click:Connect(function()
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                task.wait(0.1)
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+                
+                if callback then
+                    local success, err = pcall(callback)
+                    if not success then
+                        warn("Error in button callback: " .. err)
+                    end
+                end
+            end)
+            
+            section.YPosition = yPos + 70
+            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+        end
+        
+        return SectionObject
+    end
+    
+    return TabObject
+end
+
+return Library
