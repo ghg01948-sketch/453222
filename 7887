@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 2.5.0
+    Версия: 2.6.0
 ]]
 
 local Library = {}
@@ -31,6 +31,7 @@ local TabButtons = {}
 local HideButton = nil
 local IsVisible = true
 local Tabs = {} -- Для хранения созданных вкладок
+local TabCounter = 0 -- Счетчик вкладок
 
 function Library:CreateLib(title, theme)
     -- Основной фрейм
@@ -346,7 +347,10 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- Возвращаем объект библиотеки для создания вкладок
+    -- Создаем MAIN вкладку по умолчанию
+    self:NewTab("MAIN")
+    
+    -- Возвращаем объект библиотеки
     return self
 end
 
@@ -354,6 +358,7 @@ end
 function Library:NewTab(name)
     local tabContainer = UIElements.TabContainer
     local tabCount = #TabButtons
+    TabCounter = TabCounter + 1
     
     -- Создаем кнопку вкладки
     local tabButton = Instance.new("TextButton")
