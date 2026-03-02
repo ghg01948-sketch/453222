@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 2.7.0
+    Версия: 3.0.0 - Автоматические вкладки
 ]]
 
 local Library = {}
@@ -31,6 +31,7 @@ local TabButtons = {}
 local HideButton = nil
 local IsVisible = true
 local Tabs = {}
+local TabCounter = 0
 
 function Library:CreateLib(title, theme)
     -- Основной фрейм
@@ -346,19 +347,19 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- НЕТ ВКЛАДОК ПО УМОЛЧАНИЮ! Вкладки создаются только через NewTab
-    
+    -- ВОЗВРАЩАЕМ ОБЪЕКТ ДЛЯ СОЗДАНИЯ ВКЛАДОК
     return self
 end
 
--- Функция для создания новой вкладки
+-- Функция для создания новой вкладки (АВТОМАТИЧЕСКАЯ)
 function Library:NewTab(name)
+    TabCounter = TabCounter + 1
     local tabContainer = UIElements.TabContainer
     local tabCount = #TabButtons
     
     -- Создаем кнопку вкладки
     local tabButton = Instance.new("TextButton")
-    tabButton.Name = "Tab_" .. name
+    tabButton.Name = "Tab_" .. name .. "_" .. TabCounter
     tabButton.Size = UDim2.new(0, 100, 1, -2)
     tabButton.Position = UDim2.new(0, tabCount * 105 + 5, 0, 1)
     tabButton.BackgroundTransparency = 1
@@ -373,7 +374,7 @@ function Library:NewTab(name)
     
     -- Создаем контейнер для этой вкладки
     local section = Instance.new("ScrollingFrame")
-    section.Name = name .. "Section"
+    section.Name = name .. "Section_" .. TabCounter
     section.Size = UDim2.new(1, 0, 1, 0)
     section.Position = UDim2.new(0, 0, 0, 0)
     section.BackgroundTransparency = 1
@@ -385,7 +386,7 @@ function Library:NewTab(name)
     section.Visible = (tabCount == 0)
     
     local container = Instance.new("Frame")
-    container.Name = "Container"
+    container.Name = "Container_" .. TabCounter
     container.Size = UDim2.new(1, -20, 1, -20)
     container.Position = UDim2.new(0, 10, 0, 10)
     container.BackgroundTransparency = 1
@@ -396,15 +397,17 @@ function Library:NewTab(name)
         Container = container,
         YPosition = 0,
         Button = tabButton,
-        Name = name
+        Name = name,
+        Index = TabCounter
     }
     
-    Sections[name] = tabData
-    Tabs[name] = tabData
+    local tabKey = name .. "_" .. TabCounter
+    Sections[tabKey] = tabData
+    Tabs[tabKey] = tabData
     
     -- Если это первая вкладка, делаем её активной
     if tabCount == 0 then
-        CurrentTab = name
+        CurrentTab = tabKey
         local line = Instance.new("Frame")
         line.Size = UDim2.new(1, 0, 0, 2)
         line.Position = UDim2.new(0, 0, 1, -2)
@@ -416,7 +419,7 @@ function Library:NewTab(name)
     
     -- Обработчик нажатия на вкладку
     tabButton.MouseButton1Click:Connect(function()
-        CurrentTab = name
+        CurrentTab = tabKey
         
         for _, btn in ipairs(TabButtons) do
             btn.TextColor3 = Color3.fromRGB(140, 140, 140)
@@ -435,9 +438,10 @@ function Library:NewTab(name)
         line.Parent = tabButton
         UIElements.ActiveLine = line
         
-        for tabName, tab in pairs(Sections) do
-            tab.Frame.Visible = (tabName == name)
+        for _, tab in pairs(Sections) do
+            tab.Frame.Visible = false
         end
+        tabData.Frame.Visible = true
     end)
     
     -- Обновляем размеры вкладок
@@ -450,9 +454,8 @@ function Library:NewTab(name)
     
     function TabObject:NewSection(sectionName)
         local SectionObject = {}
-        local tab = Sections[name]
-        local container = tab.Container
-        local yPos = tab.YPosition
+        local container = tabData.Container
+        local yPos = tabData.YPosition
         
         -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
@@ -474,11 +477,11 @@ function Library:NewTab(name)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
-        tab.YPosition = yPos + 40
+        tabData.YPosition = yPos + 40
         
         -- Кнопка
         function SectionObject:NewButton(buttonName, description, callback)
-            local currentY = tab.YPosition
+            local currentY = tabData.YPosition
             
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
@@ -537,13 +540,13 @@ function Library:NewTab(name)
                 end
             end)
             
-            tab.YPosition = currentY + 70
-            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
+            tabData.YPosition = currentY + 70
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
         
         -- Тумблер
         function SectionObject:NewToggle(toggleName, description, callback)
-            local currentY = tab.YPosition
+            local currentY = tabData.YPosition
             local toggleId = tostring(math.random(10000, 99999))
             
             local toggleFrame = Instance.new("Frame")
@@ -631,13 +634,13 @@ function Library:NewTab(name)
                 return toggleState
             end
             
-            tab.YPosition = currentY + 60
-            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
+            tabData.YPosition = currentY + 60
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
         
         -- Ползунок
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
-            local currentY = tab.YPosition
+            local currentY = tabData.YPosition
             local sliderId = tostring(math.random(10000, 99999))
             
             local sliderFrame = Instance.new("Frame")
@@ -767,8 +770,8 @@ function Library:NewTab(name)
                 return currentValue
             end
             
-            tab.YPosition = currentY + 80
-            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
+            tabData.YPosition = currentY + 80
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
         
         return SectionObject
