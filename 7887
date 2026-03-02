@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 3.0.0 - Автоматические вкладки
+    Версия: 3.1.0 - Добавлены выпадающие меню и текстовые блоки
 ]]
 
 local Library = {}
@@ -347,11 +347,10 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- ВОЗВРАЩАЕМ ОБЪЕКТ ДЛЯ СОЗДАНИЯ ВКЛАДОК
     return self
 end
 
--- Функция для создания новой вкладки (АВТОМАТИЧЕСКАЯ)
+-- Функция для создания новой вкладки
 function Library:NewTab(name)
     TabCounter = TabCounter + 1
     local tabContainer = UIElements.TabContainer
@@ -449,7 +448,7 @@ function Library:NewTab(name)
         UIElements.updateTabSizes()
     end
     
-    -- Создаем объект вкладки с методом NewSection
+    -- Создаем объект вкладки с методами
     local TabObject = {}
     
     function TabObject:NewSection(sectionName)
@@ -771,6 +770,196 @@ function Library:NewTab(name)
             end
             
             tabData.YPosition = currentY + 80
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+        end
+        
+        -- ВЫПАДАЮЩЕЕ МЕНЮ (кнопка со стрелочкой)
+        function SectionObject:NewDropdown(dropdownName, description)
+            local DropdownObject = {}
+            local currentY = tabData.YPosition
+            local isOpen = false
+            
+            -- Основной контейнер дропдауна
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
+            dropdownFrame.Position = UDim2.new(0, 0, 0, currentY)
+            dropdownFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            dropdownFrame.BorderSizePixel = 2
+            dropdownFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+            dropdownFrame.Parent = container
+            dropdownFrame.ClipsDescendants = true
+            
+            -- Кнопка заголовка дропдауна
+            local dropdownButton = Instance.new("TextButton")
+            dropdownButton.Size = UDim2.new(1, 0, 0, 50)
+            dropdownButton.Position = UDim2.new(0, 0, 0, 0)
+            dropdownButton.BackgroundTransparency = 1
+            dropdownButton.Text = ""
+            dropdownButton.Parent = dropdownFrame
+            
+            -- Название дропдауна
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, -50, 0, 25)
+            nameLabel.Position = UDim2.new(0, 10, 0, 5)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = dropdownName
+            nameLabel.TextColor3 = CurrentColor
+            nameLabel.TextSize = 16
+            nameLabel.Font = Enum.Font.Code
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.Parent = dropdownFrame
+            
+            -- Описание
+            local descLabel = Instance.new("TextLabel")
+            descLabel.Size = UDim2.new(1, -50, 0, 20)
+            descLabel.Position = UDim2.new(0, 10, 0, 25)
+            descLabel.BackgroundTransparency = 1
+            descLabel.Text = description or ""
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+            descLabel.TextSize = 12
+            descLabel.Font = Enum.Font.Code
+            descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            descLabel.Parent = dropdownFrame
+            
+            -- Стрелочка
+            local arrowLabel = Instance.new("TextLabel")
+            arrowLabel.Size = UDim2.new(0, 30, 0, 30)
+            arrowLabel.Position = UDim2.new(1, -40, 0, 10)
+            arrowLabel.BackgroundTransparency = 1
+            arrowLabel.Text = "▼"
+            arrowLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+            arrowLabel.TextSize = 20
+            arrowLabel.Font = Enum.Font.Code
+            arrowLabel.Parent = dropdownFrame
+            
+            -- Контейнер для элементов внутри дропдауна
+            local dropdownContent = Instance.new("Frame")
+            dropdownContent.Name = "DropdownContent"
+            dropdownContent.Size = UDim2.new(1, 0, 0, 0)
+            dropdownContent.Position = UDim2.new(0, 0, 0, 50)
+            dropdownContent.BackgroundTransparency = 1
+            dropdownContent.Parent = dropdownFrame
+            dropdownContent.Visible = false
+            
+            local contentY = 0
+            local contentButtons = {}
+            
+            -- Функция открытия/закрытия
+            local function toggleDropdown()
+                isOpen = not isOpen
+                
+                if isOpen then
+                    arrowLabel.Text = "▲"
+                    dropdownContent.Visible = true
+                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                else
+                    arrowLabel.Text = "▼"
+                    dropdownContent.Visible = false
+                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
+                end
+                
+                -- Обновляем CanvasSize
+                tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            end
+            
+            dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+            
+            -- Метод для добавления кнопки в дропдаун
+            function DropdownObject:NewButton(buttonName, buttonCallback)
+                local btnY = contentY
+                
+                local buttonFrame = Instance.new("Frame")
+                buttonFrame.Size = UDim2.new(1, -20, 0, 40)
+                buttonFrame.Position = UDim2.new(0, 10, 0, btnY)
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                buttonFrame.BorderSizePixel = 1
+                buttonFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+                buttonFrame.Parent = dropdownContent
+                
+                local nameLabel = Instance.new("TextLabel")
+                nameLabel.Size = UDim2.new(1, -20, 1, 0)
+                nameLabel.Position = UDim2.new(0, 10, 0, 0)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.Text = buttonName
+                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                nameLabel.TextSize = 14
+                nameLabel.Font = Enum.Font.Code
+                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+                nameLabel.Parent = buttonFrame
+                
+                local button = Instance.new("TextButton")
+                button.Size = UDim2.new(1, 0, 1, 0)
+                button.BackgroundTransparency = 1
+                button.Text = ""
+                button.Parent = buttonFrame
+                
+                button.MouseEnter:Connect(function()
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                end)
+                
+                button.MouseLeave:Connect(function()
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                end)
+                
+                button.MouseButton1Click:Connect(function()
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    task.wait(0.1)
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                    
+                    if buttonCallback then
+                        local success, err = pcall(buttonCallback)
+                        if not success then
+                            warn("Error in dropdown button callback: " .. err)
+                        end
+                    end
+                end)
+                
+                contentY = contentY + 45
+                dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
+                dropdownFrame.Size = isOpen and UDim2.new(1, 0, 0, 50 + contentY) or UDim2.new(1, 0, 0, 50)
+            end
+            
+            tabData.YPosition = currentY + 50
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            
+            return DropdownObject
+        end
+        
+        -- ТЕКСТОВЫЙ БЛОК
+        function SectionObject:NewTextBlock(text)
+            local currentY = tabData.YPosition
+            
+            local textFrame = Instance.new("Frame")
+            textFrame.Size = UDim2.new(1, 0, 0, 60)
+            textFrame.Position = UDim2.new(0, 0, 0, currentY)
+            textFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            textFrame.BorderSizePixel = 2
+            textFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+            textFrame.Parent = container
+            
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Size = UDim2.new(1, -20, 1, -20)
+            textLabel.Position = UDim2.new(0, 10, 0, 10)
+            textLabel.BackgroundTransparency = 1
+            textLabel.Text = text or ""
+            textLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            textLabel.TextSize = 14
+            textLabel.Font = Enum.Font.Code
+            textLabel.TextWrapped = true
+            textLabel.TextXAlignment = Enum.TextXAlignment.Left
+            textLabel.TextYAlignment = Enum.TextYAlignment.Top
+            textLabel.Parent = textFrame
+            
+            -- Автоматическая высота под текст
+            local function updateHeight()
+                local lines = #text:split("\n")
+                local height = math.max(60, 30 + lines * 20)
+                textFrame.Size = UDim2.new(1, 0, 0, height)
+            end
+            
+            updateHeight()
+            
+            tabData.YPosition = currentY + textFrame.Size.Y.Offset + 10
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
         
