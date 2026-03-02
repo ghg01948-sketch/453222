@@ -1,6 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
-    Версия: 2.4.0
+    Библиотека для создания интерфейса
+    Версия: 2.5.0
 ]]
 
 local Library = {}
@@ -23,12 +24,13 @@ local ColumnsFrame = nil
 local CurrentColor = Color3.fromRGB(180, 180, 180)
 local UIElements = {}
 local Sections = {}
-local CurrentTab = "MAIN"
+local CurrentTab = nil
 local ToggleStates = {}
 local SliderValues = {}
 local TabButtons = {}
 local HideButton = nil
 local IsVisible = true
+local Tabs = {} -- Для хранения созданных вкладок
 
 function Library:CreateLib(title, theme)
     -- Основной фрейм
@@ -63,7 +65,7 @@ function Library:CreateLib(title, theme)
     titleBar.BorderColor3 = Color3.fromRGB(60, 60, 60)
     titleBar.Parent = MainFrame
     
-    -- Кнопка скрытия меню (в левом углу)
+    -- Кнопка скрытия меню
     HideButton = Instance.new("TextButton")
     HideButton.Name = "HideButton"
     HideButton.Size = UDim2.new(0, 30, 0, 30)
@@ -76,10 +78,10 @@ function Library:CreateLib(title, theme)
     HideButton.Font = Enum.Font.Code
     HideButton.Parent = titleBar
     
-    -- Текст заголовка (сдвинут вправо из-за кнопки скрытия)
+    -- Текст заголовка
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
-    titleText.Size = UDim2.new(1, -105, 1, 0) -- Уменьшено для двух кнопок
+    titleText.Size = UDim2.new(1, -105, 1, 0)
     titleText.Position = UDim2.new(0, 40, 0, 0)
     titleText.BackgroundTransparency = 1
     titleText.Text = title or "CODE B HACK MODULE // SStwendRT"
@@ -291,7 +293,6 @@ function Library:CreateLib(title, theme)
     local function toggleMenu()
         IsVisible = not IsVisible
         
-        -- Создаем анимацию
         local tweenInfo = TweenInfo.new(
             0.3,
             Enum.EasingStyle.Quad,
@@ -299,7 +300,6 @@ function Library:CreateLib(title, theme)
         )
         
         if IsVisible then
-            -- Показываем меню
             HideButton.Text = "◀"
             local goal = {
                 Size = UDim2.new(0, 500, 0, 600),
@@ -308,13 +308,11 @@ function Library:CreateLib(title, theme)
             local tween = TweenService:Create(MainFrame, tweenInfo, goal)
             tween:Play()
             
-            -- Показываем все элементы
             ColumnsFrame.Visible = true
             UIElements.TabBar.Visible = true
             bottomFrame.Visible = true
             ResizeButton.Visible = true
         else
-            -- Скрываем меню (оставляем только заголовок)
             HideButton.Text = "▶"
             local goal = {
                 Size = UDim2.new(0, 200, 0, 40),
@@ -323,7 +321,6 @@ function Library:CreateLib(title, theme)
             local tween = TweenService:Create(MainFrame, tweenInfo, goal)
             tween:Play()
             
-            -- Скрываем все элементы кроме заголовка
             ColumnsFrame.Visible = false
             UIElements.TabBar.Visible = false
             bottomFrame.Visible = false
@@ -331,10 +328,8 @@ function Library:CreateLib(title, theme)
         end
     end
     
-    -- Обработчик для кнопки скрытия
     HideButton.MouseButton1Click:Connect(toggleMenu)
     
-    -- Эффекты для кнопки скрытия
     HideButton.MouseEnter:Connect(function()
         HideButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     end)
@@ -343,7 +338,6 @@ function Library:CreateLib(title, theme)
         HideButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     end)
     
-    -- Горячая клавиша для скрытия (правый Ctrl)
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         
@@ -352,13 +346,16 @@ function Library:CreateLib(title, theme)
         end
     end)
     
+    -- Возвращаем объект библиотеки для создания вкладок
     return self
 end
 
+-- Функция для создания новой вкладки
 function Library:NewTab(name)
     local tabContainer = UIElements.TabContainer
     local tabCount = #TabButtons
     
+    -- Создаем кнопку вкладки
     local tabButton = Instance.new("TextButton")
     tabButton.Name = "Tab_" .. name
     tabButton.Size = UDim2.new(0, 100, 1, -2)
@@ -372,16 +369,6 @@ function Library:NewTab(name)
     tabButton.Parent = tabContainer
     
     table.insert(TabButtons, tabButton)
-    
-    if tabCount == 0 then
-        local line = Instance.new("Frame")
-        line.Size = UDim2.new(1, 0, 0, 2)
-        line.Position = UDim2.new(0, 0, 1, -2)
-        line.BackgroundColor3 = CurrentColor
-        line.BorderSizePixel = 0
-        line.Parent = tabButton
-        UIElements.ActiveLine = line
-    end
     
     -- Создаем секцию для этой вкладки
     local section = Instance.new("ScrollingFrame")
@@ -403,14 +390,30 @@ function Library:NewTab(name)
     container.BackgroundTransparency = 1
     container.Parent = section
     
-    Sections[name] = {
+    local tabData = {
         Frame = section,
         Container = container,
-        YPosition = 0
+        YPosition = 0,
+        Button = tabButton,
+        Name = name
     }
     
-    UIElements[name] = tabButton
+    Sections[name] = tabData
+    Tabs[name] = tabData
     
+    -- Если это первая вкладка, делаем её активной
+    if tabCount == 0 then
+        CurrentTab = name
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, 0, 0, 2)
+        line.Position = UDim2.new(0, 0, 1, -2)
+        line.BackgroundColor3 = CurrentColor
+        line.BorderSizePixel = 0
+        line.Parent = tabButton
+        UIElements.ActiveLine = line
+    end
+    
+    -- Обработчик нажатия на вкладку
     tabButton.MouseButton1Click:Connect(function()
         CurrentTab = name
         
@@ -431,25 +434,29 @@ function Library:NewTab(name)
         line.Parent = tabButton
         UIElements.ActiveLine = line
         
-        for tabName, section in pairs(Sections) do
-            section.Frame.Visible = (tabName == name)
+        for tabName, tab in pairs(Sections) do
+            tab.Frame.Visible = (tabName == name)
         end
     end)
     
+    -- Обновляем размеры вкладок
     if UIElements.updateTabSizes then
         UIElements.updateTabSizes()
     end
     
+    -- Создаем объект вкладки с методом NewSection
     local TabObject = {}
     
     function TabObject:NewSection(sectionName)
         local SectionObject = {}
-        local section = Sections[name]
-        local container = section.Container
+        local tab = Sections[name]
+        local container = tab.Container
+        local yPos = tab.YPosition
         
+        -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
-        sectionTitle.Position = UDim2.new(0, 0, 0, section.YPosition)
+        sectionTitle.Position = UDim2.new(0, 0, 0, yPos)
         sectionTitle.BackgroundTransparency = 1
         sectionTitle.Text = "// " .. sectionName
         sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
@@ -458,22 +465,23 @@ function Library:NewTab(name)
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
         sectionTitle.Parent = container
         
+        -- Линия под заголовком
         local sectionLine = Instance.new("Frame")
         sectionLine.Size = UDim2.new(1, 0, 0, 2)
-        sectionLine.Position = UDim2.new(0, 0, 0, section.YPosition + 25)
+        sectionLine.Position = UDim2.new(0, 0, 0, yPos + 25)
         sectionLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
-        section.YPosition = section.YPosition + 40
+        tab.YPosition = yPos + 40
         
         -- Кнопка
         function SectionObject:NewButton(buttonName, description, callback)
-            local yPos = section.YPosition
+            local currentY = tab.YPosition
             
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
-            buttonFrame.Position = UDim2.new(0, 0, 0, yPos)
+            buttonFrame.Position = UDim2.new(0, 0, 0, currentY)
             buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             buttonFrame.BorderSizePixel = 2
             buttonFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -528,18 +536,18 @@ function Library:NewTab(name)
                 end
             end)
             
-            section.YPosition = yPos + 70
-            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+            tab.YPosition = currentY + 70
+            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
         end
         
         -- Тумблер
         function SectionObject:NewToggle(toggleName, description, callback)
-            local yPos = section.YPosition
+            local currentY = tab.YPosition
             local toggleId = tostring(math.random(10000, 99999))
             
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 50)
-            toggleFrame.Position = UDim2.new(0, 0, 0, yPos)
+            toggleFrame.Position = UDim2.new(0, 0, 0, currentY)
             toggleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             toggleFrame.BorderSizePixel = 2
             toggleFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -622,18 +630,18 @@ function Library:NewTab(name)
                 return toggleState
             end
             
-            section.YPosition = yPos + 60
-            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+            tab.YPosition = currentY + 60
+            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
         end
         
         -- Ползунок
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
-            local yPos = section.YPosition
+            local currentY = tab.YPosition
             local sliderId = tostring(math.random(10000, 99999))
             
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 70)
-            sliderFrame.Position = UDim2.new(0, 0, 0, yPos)
+            sliderFrame.Position = UDim2.new(0, 0, 0, currentY)
             sliderFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             sliderFrame.BorderSizePixel = 2
             sliderFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -758,8 +766,8 @@ function Library:NewTab(name)
                 return currentValue
             end
             
-            section.YPosition = yPos + 80
-            section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
+            tab.YPosition = currentY + 80
+            tab.Frame.CanvasSize = UDim2.new(0, 0, 0, tab.YPosition + 10)
         end
         
         return SectionObject
