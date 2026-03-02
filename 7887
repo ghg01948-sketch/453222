@@ -1,7 +1,6 @@
 --[[
     CODE B HACK MODULE // SStwendRT
-    Библиотека для создания интерфейса
-    Версия: 2.2.0
+    Версия: 2.4.0
 ]]
 
 local Library = {}
@@ -25,12 +24,13 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local UIElements = {}
 local Sections = {}
 local CurrentTab = "MAIN"
-local ToggleStates = {} -- Для хранения состояний тумблеров
-local SliderValues = {} -- Для хранения значений ползунков
+local ToggleStates = {}
+local SliderValues = {}
+local TabButtons = {}
+local HideButton = nil
+local IsVisible = true
 
 function Library:CreateLib(title, theme)
-    -- Игнорируем тему, используем свой черно-белый стиль
-    
     -- Основной фрейм
     MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
@@ -57,17 +57,30 @@ function Library:CreateLib(title, theme)
     -- Заголовок
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 40) -- Увеличил высоту для большой кнопки
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
     titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     titleBar.BorderSizePixel = 1
     titleBar.BorderColor3 = Color3.fromRGB(60, 60, 60)
     titleBar.Parent = MainFrame
     
-    -- Текст заголовка
+    -- Кнопка скрытия меню (в левом углу)
+    HideButton = Instance.new("TextButton")
+    HideButton.Name = "HideButton"
+    HideButton.Size = UDim2.new(0, 30, 0, 30)
+    HideButton.Position = UDim2.new(0, 5, 0, 5)
+    HideButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    HideButton.BorderColor3 = Color3.fromRGB(80, 80, 80)
+    HideButton.Text = "◀"
+    HideButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+    HideButton.TextSize = 18
+    HideButton.Font = Enum.Font.Code
+    HideButton.Parent = titleBar
+    
+    -- Текст заголовка (сдвинут вправо из-за кнопки скрытия)
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
-    titleText.Size = UDim2.new(1, -60, 1, 0) -- Уменьшил ширину для кнопки
-    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.Size = UDim2.new(1, -105, 1, 0) -- Уменьшено для двух кнопок
+    titleText.Position = UDim2.new(0, 40, 0, 0)
     titleText.BackgroundTransparency = 1
     titleText.Text = title or "CODE B HACK MODULE // SStwendRT"
     titleText.TextColor3 = Color3.fromRGB(220, 220, 220)
@@ -76,22 +89,21 @@ function Library:CreateLib(title, theme)
     titleText.TextXAlignment = Enum.TextXAlignment.Left
     titleText.Parent = titleBar
     
-    -- Кнопка закрытия (БОЛЬШАЯ)
+    -- Кнопка закрытия
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
-    closeBtn.Size = UDim2.new(0, 40, 0, 30) -- Увеличена с 30x25 до 40x30
-    closeBtn.Position = UDim2.new(1, -45, 0, 5) -- Сдвинута левее
-    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Ярче фон
-    closeBtn.BorderColor3 = Color3.fromRGB(120, 120, 120) -- Ярче граница
-    closeBtn.Text = "✕" -- Жирный крестик вместо X
-    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст
-    closeBtn.TextSize = 20 -- Больше размер шрифта
+    closeBtn.Size = UDim2.new(0, 40, 0, 30)
+    closeBtn.Position = UDim2.new(1, -45, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    closeBtn.BorderColor3 = Color3.fromRGB(120, 120, 120)
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = 20
     closeBtn.Font = Enum.Font.Code
     closeBtn.Parent = titleBar
     
-    -- Эффект наведения на кнопку закрытия
     closeBtn.MouseEnter:Connect(function()
-        closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0) -- Красный при наведении
+        closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
     end)
     
     closeBtn.MouseLeave:Connect(function()
@@ -124,8 +136,8 @@ function Library:CreateLib(title, theme)
     -- Контейнер для вкладок
     ColumnsFrame = Instance.new("Frame")
     ColumnsFrame.Name = "ColumnsFrame"
-    ColumnsFrame.Size = UDim2.new(1, -20, 1, -105) -- Подогнал под новую высоту заголовка
-    ColumnsFrame.Position = UDim2.new(0, 10, 0, 50) -- Сдвинул вниз
+    ColumnsFrame.Size = UDim2.new(1, -20, 1, -105)
+    ColumnsFrame.Position = UDim2.new(0, 10, 0, 50)
     ColumnsFrame.BackgroundTransparency = 1
     ColumnsFrame.Parent = MainFrame
     
@@ -208,6 +220,8 @@ function Library:CreateLib(title, theme)
                     section.Frame.Size = UDim2.new(1, 0, 1, 0)
                 end
             end
+            
+            updateTabSizes()
         end
     end)
     
@@ -226,33 +240,138 @@ function Library:CreateLib(title, theme)
     tabBar.BorderSizePixel = 1
     tabBar.BorderColor3 = Color3.fromRGB(50, 50, 50)
     tabBar.Parent = MainFrame
+    tabBar.ClipsDescendants = true
+    
+    -- Контейнер для кнопок вкладок
+    local tabContainer = Instance.new("Frame")
+    tabContainer.Name = "TabContainer"
+    tabContainer.Size = UDim2.new(1, -10, 1, 0)
+    tabContainer.Position = UDim2.new(0, 5, 0, 0)
+    tabContainer.BackgroundTransparency = 1
+    tabContainer.Parent = tabBar
+    tabContainer.ClipsDescendants = false
     
     UIElements.TabBar = tabBar
+    UIElements.TabContainer = tabContainer
+    
+    -- Функция обновления размеров вкладок
+    local function updateTabSizes()
+        local containerWidth = tabContainer.AbsoluteSize.X
+        local tabCount = #TabButtons
+        
+        if tabCount == 0 then return end
+        
+        local minTabWidth = 70
+        local maxTabWidth = 120
+        local availableWidth = containerWidth - 5 * (tabCount - 1)
+        
+        local tabWidth = math.floor(availableWidth / tabCount)
+        tabWidth = math.clamp(tabWidth, minTabWidth, maxTabWidth)
+        
+        if tabWidth < minTabWidth then
+            tabWidth = minTabWidth
+        end
+        
+        for i, tabBtn in ipairs(TabButtons) do
+            tabBtn.Size = UDim2.new(0, tabWidth, 1, -2)
+            tabBtn.Position = UDim2.new(0, (i - 1) * (tabWidth + 5) + 5, 0, 1)
+            
+            if #tabBtn.Text > 8 then
+                tabBtn.TextSize = 12
+            else
+                tabBtn.TextSize = 14
+            end
+        end
+    end
+    
+    tabBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTabSizes)
+    UIElements.updateTabSizes = updateTabSizes
+    
+    -- Функция скрытия/показа меню
+    local function toggleMenu()
+        IsVisible = not IsVisible
+        
+        -- Создаем анимацию
+        local tweenInfo = TweenInfo.new(
+            0.3,
+            Enum.EasingStyle.Quad,
+            Enum.EasingDirection.Out
+        )
+        
+        if IsVisible then
+            -- Показываем меню
+            HideButton.Text = "◀"
+            local goal = {
+                Size = UDim2.new(0, 500, 0, 600),
+                BackgroundTransparency = 0
+            }
+            local tween = TweenService:Create(MainFrame, tweenInfo, goal)
+            tween:Play()
+            
+            -- Показываем все элементы
+            ColumnsFrame.Visible = true
+            UIElements.TabBar.Visible = true
+            bottomFrame.Visible = true
+            ResizeButton.Visible = true
+        else
+            -- Скрываем меню (оставляем только заголовок)
+            HideButton.Text = "▶"
+            local goal = {
+                Size = UDim2.new(0, 200, 0, 40),
+                BackgroundTransparency = 0
+            }
+            local tween = TweenService:Create(MainFrame, tweenInfo, goal)
+            tween:Play()
+            
+            -- Скрываем все элементы кроме заголовка
+            ColumnsFrame.Visible = false
+            UIElements.TabBar.Visible = false
+            bottomFrame.Visible = false
+            ResizeButton.Visible = false
+        end
+    end
+    
+    -- Обработчик для кнопки скрытия
+    HideButton.MouseButton1Click:Connect(toggleMenu)
+    
+    -- Эффекты для кнопки скрытия
+    HideButton.MouseEnter:Connect(function()
+        HideButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end)
+    
+    HideButton.MouseLeave:Connect(function()
+        HideButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    end)
+    
+    -- Горячая клавиша для скрытия (правый Ctrl)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.RightControl then
+            toggleMenu()
+        end
+    end)
     
     return self
 end
 
 function Library:NewTab(name)
-    local tabBar = UIElements.TabBar
-    local tabCount = 0
-    
-    for _, v in pairs(UIElements) do
-        if v:IsA("TextButton") and v.Parent == tabBar then
-            tabCount = tabCount + 1
-        end
-    end
+    local tabContainer = UIElements.TabContainer
+    local tabCount = #TabButtons
     
     local tabButton = Instance.new("TextButton")
     tabButton.Name = "Tab_" .. name
     tabButton.Size = UDim2.new(0, 100, 1, -2)
-    tabButton.Position = UDim2.new(0, (tabCount * 105) + 5, 0, 1)
+    tabButton.Position = UDim2.new(0, tabCount * 105 + 5, 0, 1)
     tabButton.BackgroundTransparency = 1
     tabButton.Text = name
     tabButton.TextColor3 = (tabCount == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)
     tabButton.TextSize = 14
     tabButton.Font = Enum.Font.Code
     tabButton.BorderSizePixel = 0
-    tabButton.Parent = tabBar
+    tabButton.Parent = tabContainer
+    
+    table.insert(TabButtons, tabButton)
     
     if tabCount == 0 then
         local line = Instance.new("Frame")
@@ -295,10 +414,8 @@ function Library:NewTab(name)
     tabButton.MouseButton1Click:Connect(function()
         CurrentTab = name
         
-        for _, btn in pairs(UIElements) do
-            if btn:IsA("TextButton") and btn.Parent == tabBar then
-                btn.TextColor3 = Color3.fromRGB(140, 140, 140)
-            end
+        for _, btn in ipairs(TabButtons) do
+            btn.TextColor3 = Color3.fromRGB(140, 140, 140)
         end
         tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         
@@ -319,6 +436,10 @@ function Library:NewTab(name)
         end
     end)
     
+    if UIElements.updateTabSizes then
+        UIElements.updateTabSizes()
+    end
+    
     local TabObject = {}
     
     function TabObject:NewSection(sectionName)
@@ -330,7 +451,7 @@ function Library:NewTab(name)
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
         sectionTitle.Position = UDim2.new(0, 0, 0, section.YPosition)
         sectionTitle.BackgroundTransparency = 1
-        sectionTitle.Text = "// " .. sectionName  -- Заменил молнию на //
+        sectionTitle.Text = "// " .. sectionName
         sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
         sectionTitle.TextSize = 16
         sectionTitle.Font = Enum.Font.Code
@@ -411,7 +532,7 @@ function Library:NewTab(name)
             section.Frame.CanvasSize = UDim2.new(0, 0, 0, section.YPosition + 10)
         end
         
-        -- Тумблер (рычаг) - ИСПРАВЛЕН
+        -- Тумблер
         function SectionObject:NewToggle(toggleName, description, callback)
             local yPos = section.YPosition
             local toggleId = tostring(math.random(10000, 99999))
@@ -446,7 +567,7 @@ function Library:NewTab(name)
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
             descLabel.Parent = toggleFrame
             
-            -- Рычаг (тумблер)
+            -- Рычаг
             local toggleBg = Instance.new("Frame")
             toggleBg.Size = UDim2.new(0, 50, 0, 24)
             toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
@@ -468,11 +589,9 @@ function Library:NewTab(name)
             
             local function updateToggle()
                 if toggleState then
-                    -- Включено
                     toggleIndicator.BackgroundColor3 = CurrentColor
                     toggleIndicator.Position = UDim2.new(1, -22, 0.5, -8)
                 else
-                    -- Выключено
                     toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
                     toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
                 end
@@ -489,10 +608,9 @@ function Library:NewTab(name)
                 ToggleStates[toggleId] = toggleState
                 updateToggle()
                 
-                -- ВАЖНО: Вызываем callback с правильным параметром
                 if callback then
                     local success, err = pcall(function()
-                        callback(toggleState)  -- Передаем true/false
+                        callback(toggleState)
                     end)
                     if not success then
                         warn("Error in toggle callback: " .. err)
@@ -500,7 +618,6 @@ function Library:NewTab(name)
                 end
             end)
             
-            -- Функция для получения состояния тумблера
             function SectionObject:GetToggleState()
                 return toggleState
             end
@@ -607,14 +724,12 @@ function Library:NewTab(name)
                 end
             end
             
-            -- Устанавливаем начальное значение
             if default then
                 local percent = (default - min) / (max - min)
                 sliderFill.Size = UDim2.new(percent, 0, 1, 0)
                 valueLabel.Text = tostring(default)
                 SliderValues[sliderId] = default
                 
-                -- Вызываем callback с начальным значением
                 if callback then
                     pcall(function()
                         callback(default)
@@ -639,7 +754,6 @@ function Library:NewTab(name)
                 end
             end)
             
-            -- Функция для получения значения ползунка
             function SectionObject:GetSliderValue()
                 return currentValue
             end
@@ -654,12 +768,10 @@ function Library:NewTab(name)
     return TabObject
 end
 
--- Функция для проверки состояния тумблера по ID
 function Library:GetToggleState(id)
     return ToggleStates[id] or false
 end
 
--- Функция для получения значения ползунка по ID
 function Library:GetSliderValue(id)
     return SliderValues[id] or 0
 end
