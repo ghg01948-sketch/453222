@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 3.1.0 - Добавлены выпадающие меню и текстовые блоки
+    Версия: 3.2.0 - Исправлены выпадающие меню
 ]]
 
 local Library = {}
@@ -478,6 +478,19 @@ function Library:NewTab(name)
         
         tabData.YPosition = yPos + 40
         
+        -- Функция для обновления позиций всех элементов после дропдауна
+        local function updatePositions()
+            local currentY = 40 -- Начинаем после заголовка
+            for _, child in ipairs(container:GetChildren()) do
+                if child:IsA("Frame") and child ~= sectionTitle and child ~= sectionLine then
+                    child.Position = UDim2.new(0, 0, 0, currentY)
+                    currentY = currentY + child.Size.Y.Offset + 10
+                end
+            end
+            tabData.YPosition = currentY
+            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentY + 10)
+        end
+        
         -- Кнопка
         function SectionObject:NewButton(buttonName, description, callback)
             local currentY = tabData.YPosition
@@ -778,9 +791,12 @@ function Library:NewTab(name)
             local DropdownObject = {}
             local currentY = tabData.YPosition
             local isOpen = false
+            local contentY = 0
+            local dropdownFrame
+            local dropdownContent
             
-            -- Основной контейнер дропдауна
-            local dropdownFrame = Instance.new("Frame")
+            -- Создаем основной контейнер дропдауна
+            dropdownFrame = Instance.new("Frame")
             dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
             dropdownFrame.Position = UDim2.new(0, 0, 0, currentY)
             dropdownFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -833,7 +849,7 @@ function Library:NewTab(name)
             arrowLabel.Parent = dropdownFrame
             
             -- Контейнер для элементов внутри дропдауна
-            local dropdownContent = Instance.new("Frame")
+            dropdownContent = Instance.new("Frame")
             dropdownContent.Name = "DropdownContent"
             dropdownContent.Size = UDim2.new(1, 0, 0, 0)
             dropdownContent.Position = UDim2.new(0, 0, 0, 50)
@@ -841,8 +857,18 @@ function Library:NewTab(name)
             dropdownContent.Parent = dropdownFrame
             dropdownContent.Visible = false
             
-            local contentY = 0
-            local contentButtons = {}
+            -- Функция для обновления всех позиций
+            local function updateAllPositions()
+                local startY = 40 -- Начинаем после заголовка секции
+                for _, child in ipairs(container:GetChildren()) do
+                    if child:IsA("Frame") and child ~= sectionTitle and child ~= sectionLine then
+                        child.Position = UDim2.new(0, 0, 0, startY)
+                        startY = startY + child.Size.Y.Offset + 10
+                    end
+                end
+                tabData.YPosition = startY
+                tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, startY + 10)
+            end
             
             -- Функция открытия/закрытия
             local function toggleDropdown()
@@ -858,8 +884,8 @@ function Library:NewTab(name)
                     dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
                 end
                 
-                -- Обновляем CanvasSize
-                tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+                -- Обновляем позиции всех элементов
+                updateAllPositions()
             end
             
             dropdownButton.MouseButton1Click:Connect(toggleDropdown)
@@ -916,7 +942,14 @@ function Library:NewTab(name)
                 
                 contentY = contentY + 45
                 dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
-                dropdownFrame.Size = isOpen and UDim2.new(1, 0, 0, 50 + contentY) or UDim2.new(1, 0, 0, 50)
+                
+                -- Если дропдаун открыт, обновляем его размер
+                if isOpen then
+                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                end
+                
+                -- Обновляем позиции всех элементов
+                updateAllPositions()
             end
             
             tabData.YPosition = currentY + 50
@@ -930,7 +963,12 @@ function Library:NewTab(name)
             local currentY = tabData.YPosition
             
             local textFrame = Instance.new("Frame")
-            textFrame.Size = UDim2.new(1, 0, 0, 60)
+            
+            -- Подсчитываем высоту под текст
+            local lines = #text:split("\n")
+            local height = math.max(60, 40 + lines * 20)
+            
+            textFrame.Size = UDim2.new(1, 0, 0, height)
             textFrame.Position = UDim2.new(0, 0, 0, currentY)
             textFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             textFrame.BorderSizePixel = 2
@@ -950,16 +988,7 @@ function Library:NewTab(name)
             textLabel.TextYAlignment = Enum.TextYAlignment.Top
             textLabel.Parent = textFrame
             
-            -- Автоматическая высота под текст
-            local function updateHeight()
-                local lines = #text:split("\n")
-                local height = math.max(60, 30 + lines * 20)
-                textFrame.Size = UDim2.new(1, 0, 0, height)
-            end
-            
-            updateHeight()
-            
-            tabData.YPosition = currentY + textFrame.Size.Y.Offset + 10
+            tabData.YPosition = currentY + height + 10
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
         
