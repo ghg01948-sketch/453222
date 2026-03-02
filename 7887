@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 2.6.0
+    Версия: 2.7.0
 ]]
 
 local Library = {}
@@ -30,8 +30,7 @@ local SliderValues = {}
 local TabButtons = {}
 local HideButton = nil
 local IsVisible = true
-local Tabs = {} -- Для хранения созданных вкладок
-local TabCounter = 0 -- Счетчик вкладок
+local Tabs = {}
 
 function Library:CreateLib(title, theme)
     -- Основной фрейм
@@ -347,10 +346,8 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- Создаем MAIN вкладку по умолчанию
-    self:NewTab("MAIN")
+    -- НЕТ ВКЛАДОК ПО УМОЛЧАНИЮ! Вкладки создаются только через NewTab
     
-    -- Возвращаем объект библиотеки
     return self
 end
 
@@ -358,7 +355,6 @@ end
 function Library:NewTab(name)
     local tabContainer = UIElements.TabContainer
     local tabCount = #TabButtons
-    TabCounter = TabCounter + 1
     
     -- Создаем кнопку вкладки
     local tabButton = Instance.new("TextButton")
@@ -375,7 +371,7 @@ function Library:NewTab(name)
     
     table.insert(TabButtons, tabButton)
     
-    -- Создаем секцию для этой вкладки
+    -- Создаем контейнер для этой вкладки
     local section = Instance.new("ScrollingFrame")
     section.Name = name .. "Section"
     section.Size = UDim2.new(1, 0, 1, 0)
