@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 3.3.0 - ПОЛНАЯ ИСПРАВЛЕННАЯ ВЕРСИЯ
+    Версия: 3.3.1 - ИСПРАВЛЕННАЯ ВЕРСИЯ (фикс методов)
 ]]
 
 local Library = {}
@@ -452,6 +452,7 @@ function Library:NewTab(name)
         
         tabData.YPosition = yPos + 40
         
+        -- Теперь все методы возвращаются в SectionObject
         function SectionObject:NewButton(buttonName, description, callback)
             local currentY = tabData.YPosition
             
@@ -514,6 +515,8 @@ function Library:NewTab(name)
             
             tabData.YPosition = currentY + 70
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            
+            return SectionObject
         end
         
         function SectionObject:NewToggle(toggleName, description, callback)
@@ -606,6 +609,8 @@ function Library:NewTab(name)
             
             tabData.YPosition = currentY + 60
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            
+            return SectionObject
         end
         
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
@@ -739,6 +744,8 @@ function Library:NewTab(name)
             
             tabData.YPosition = currentY + 80
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            
+            return SectionObject
         end
         
         function SectionObject:NewDropdown(dropdownName, description)
@@ -1166,6 +1173,8 @@ function Library:NewTab(name)
             
             tabData.YPosition = currentY + height + 10
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            
+            return SectionObject
         end
         
         return SectionObject
