@@ -135,7 +135,6 @@ function Library:CreateLib(title, theme)
     arrowLabel.TextSize = 18
     arrowLabel.Font = Enum.Font.Code
     arrowLabel.Parent = ResizeButton
-
     -- Контейнер для вкладок
     ColumnsFrame = Instance.new("Frame")
     ColumnsFrame.Name = "ColumnsFrame"
@@ -233,7 +232,6 @@ function Library:CreateLib(title, theme)
             resizing = false
         end
     end)
-
     -- Панель вкладок
     local tabBar = Instance.new("Frame")
     tabBar.Name = "TabBar"
@@ -349,7 +347,6 @@ function Library:CreateLib(title, theme)
 
     return self
 end
-
 -- Функция для создания новой вкладки
 function Library:NewTab(name)
     TabCounter = TabCounter + 1
@@ -415,7 +412,6 @@ function Library:NewTab(name)
         line.Parent = tabButton
         UIElements.ActiveLine = line
     end
-
     -- Обработчик нажатия на вкладку
     tabButton.MouseButton1Click:Connect(function()
         CurrentTab = tabKey
@@ -490,7 +486,6 @@ function Library:NewTab(name)
             tabData.YPosition = startY
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, startY + 10)
         end
-
         -- Кнопка
         function SectionObject:NewButton(buttonName, description, callback)
             local currentY = tabData.YPosition
@@ -555,7 +550,6 @@ function Library:NewTab(name)
             tabData.YPosition = currentY + 70
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
-
         -- Тумблер
         function SectionObject:NewToggle(toggleName, description, callback)
             local currentY = tabData.YPosition
@@ -785,7 +779,6 @@ function Library:NewTab(name)
             tabData.YPosition = currentY + 80
             tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
         end
-
         -- ВЫПАДАЮЩЕЕ МЕНЮ
         function SectionObject:NewDropdown(dropdownName, description)
             local currentY = tabData.YPosition
