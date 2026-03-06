@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 3.3.1 - ИСПРАВЛЕННАЯ ВЕРСИЯ (фикс методов)
+    Версия: 3.3.2 - ИСПРАВЛЕННАЯ ВЕРСИЯ (фикс привязки к вкладкам)
 ]]
 
 local Library = {}
@@ -428,9 +428,12 @@ function Library:NewTab(name)
     local TabObject = {}
     
     function TabObject:NewSection(sectionName)
+        -- Сохраняем ссылку на текущий tabData для этой секции
+        local currentTabData = tabData
+        
         local SectionObject = {}
-        local container = tabData.Container
-        local yPos = tabData.YPosition
+        local container = currentTabData.Container
+        local yPos = currentTabData.YPosition
         
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
@@ -450,11 +453,10 @@ function Library:NewTab(name)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
-        tabData.YPosition = yPos + 40
+        currentTabData.YPosition = yPos + 40
         
-        -- Теперь все методы возвращаются в SectionObject
         function SectionObject:NewButton(buttonName, description, callback)
-            local currentY = tabData.YPosition
+            local currentY = currentTabData.YPosition
             
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
@@ -513,14 +515,14 @@ function Library:NewTab(name)
                 end
             end)
             
-            tabData.YPosition = currentY + 70
-            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            currentTabData.YPosition = currentY + 70
+            currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentTabData.YPosition + 10)
             
             return SectionObject
         end
         
         function SectionObject:NewToggle(toggleName, description, callback)
-            local currentY = tabData.YPosition
+            local currentY = currentTabData.YPosition
             local toggleId = tostring(math.random(10000, 99999))
             
             local toggleFrame = Instance.new("Frame")
@@ -607,14 +609,14 @@ function Library:NewTab(name)
                 return toggleState
             end
             
-            tabData.YPosition = currentY + 60
-            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            currentTabData.YPosition = currentY + 60
+            currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentTabData.YPosition + 10)
             
             return SectionObject
         end
         
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
-            local currentY = tabData.YPosition
+            local currentY = currentTabData.YPosition
             local sliderId = tostring(math.random(10000, 99999))
             
             local sliderFrame = Instance.new("Frame")
@@ -742,15 +744,15 @@ function Library:NewTab(name)
                 return currentValue
             end
             
-            tabData.YPosition = currentY + 80
-            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            currentTabData.YPosition = currentY + 80
+            currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentTabData.YPosition + 10)
             
             return SectionObject
         end
         
         function SectionObject:NewDropdown(dropdownName, description)
             local DropdownObject = {}
-            local currentY = tabData.YPosition
+            local currentY = currentTabData.YPosition
             local isOpen = false
             local contentY = 0
             local dropdownFrame
@@ -820,8 +822,8 @@ function Library:NewTab(name)
                         startY = startY + child.Size.Y.Offset + 10
                     end
                 end
-                tabData.YPosition = startY
-                tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, startY + 10)
+                currentTabData.YPosition = startY
+                currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, startY + 10)
             end
             
             local function toggleDropdown()
@@ -1138,14 +1140,14 @@ function Library:NewTab(name)
                 updateAllPositions()
             end
             
-            tabData.YPosition = currentY + 50
-            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            currentTabData.YPosition = currentY + 50
+            currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentTabData.YPosition + 10)
             
             return DropdownObject
         end
         
         function SectionObject:NewTextBlock(text)
-            local currentY = tabData.YPosition
+            local currentY = currentTabData.YPosition
             
             local lines = #text:split("\n")
             local height = math.max(60, 40 + lines * 20)
@@ -1171,8 +1173,8 @@ function Library:NewTab(name)
             textLabel.TextYAlignment = Enum.TextYAlignment.Top
             textLabel.Parent = textFrame
             
-            tabData.YPosition = currentY + height + 10
-            tabData.Frame.CanvasSize = UDim2.new(0, 0, 0, tabData.YPosition + 10)
+            currentTabData.YPosition = currentY + height + 10
+            currentTabData.Frame.CanvasSize = UDim2.new(0, 0, 0, currentTabData.YPosition + 10)
             
             return SectionObject
         end
