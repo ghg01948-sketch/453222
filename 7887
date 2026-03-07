@@ -24,22 +24,6 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local IsVisible = true
 local HideButton = nil
 
--- Хранилище для всех элементов с привязкой к месту в коде
-local Elements = {}
-
--- МАГИЯ: Функция которая определяет уникальный ID места в коде
-local function getCodeLocationID()
-    local info = debug.getinfo(3, "S")  -- Смотрим на 3 уровня выше
-    if not info then return "unknown" end
-    
-    local source = info.source or ""
-    local linedefined = info.linedefined or 0
-    local short_src = info.short_src or ""
-    
-    -- Создаем уникальный ключ на основе места в коде
-    return source .. ":" .. linedefined .. ":" .. short_src
-end
-
 -- Хранилище для вкладок
 local Tabs = {}
 
@@ -292,9 +276,6 @@ end
 
 -- ===== КЛАСС TAB =====
 function Library:NewTab(name)
-    -- Получаем уникальный ID места создания вкладки
-    local tabId = getCodeLocationID()
-    
     -- Создаем контейнер для вкладок если его нет
     local tabContainer = ColumnsFrame:FindFirstChild("TabContainer")
     if not tabContainer then
@@ -307,7 +288,7 @@ function Library:NewTab(name)
     
     -- Создаем фрейм для этой вкладки
     local tabFrame = Instance.new("ScrollingFrame")
-    tabFrame.Name = "Tab_" .. name .. "_" .. tabId
+    tabFrame.Name = "Tab_" .. name
     tabFrame.Size = UDim2.new(1, 0, 1, 0)
     tabFrame.Position = UDim2.new(0, 0, 0, 0)
     tabFrame.BackgroundTransparency = 1
@@ -326,22 +307,13 @@ function Library:NewTab(name)
     container.BackgroundTransparency = 1
     container.Parent = tabFrame
     
-    -- Сохраняем данные вкладки
-    Tabs[tabId] = {
-        name = name,
-        frame = tabFrame,
-        container = container,
-        sections = {},
-        yPositions = {}
-    }
-    
     -- Создаем кнопку вкладки
     local tabBar = MainFrame:FindFirstChild("TabBar")
     local tabButtonContainer = tabBar and tabBar:FindFirstChild("TabContainer")
     
     if tabButtonContainer then
         local tabButton = Instance.new("TextButton")
-        tabButton.Name = "TabButton_" .. name .. "_" .. tabId
+        tabButton.Name = "TabButton_" .. name
         tabButton.Size = UDim2.new(0, 100, 1, -2)
         tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
         tabButton.BackgroundTransparency = 1
@@ -351,7 +323,6 @@ function Library:NewTab(name)
         tabButton.Font = Enum.Font.Code
         tabButton.BorderSizePixel = 0
         tabButton.Parent = tabButtonContainer
-        tabButton.TabId = tabId  -- Сохраняем ID вкладки в кнопке
         
         table.insert(TabButtons, tabButton)
         
@@ -375,13 +346,8 @@ function Library:NewTab(name)
                 end
             end
             
-            -- Показываем выбранную вкладку по её ID
-            for id, data in pairs(Tabs) do
-                if data.frame == tabFrame then
-                    data.frame.Visible = true
-                    break
-                end
-            end
+            -- Показываем выбранную вкладку
+            tabFrame.Visible = true
             
             -- Обновляем цвета кнопок
             for _, btn in ipairs(TabButtons) do
@@ -424,58 +390,17 @@ function Library:NewTab(name)
         updateTabSizes()
     end
     
-    -- ===== МАГИЧЕСКАЯ ФУНКЦИЯ СОЗДАНИЯ СЕКЦИИ =====
-    -- Она будет автоматически определять вкладку по контексту
-    local function createSection(sectionName)
-        -- Получаем ID текущей вкладки из контекста
-        local contextId = getCodeLocationID()
-        
-        -- Ищем, какая вкладка соответствует этому контексту
-        local targetTabId = nil
-        local targetTabData = nil
-        
-        -- Проходим по всем вкладкам и ищем ту, которая была создана в этом контексте
-        for id, data in pairs(Tabs) do
-            if id == contextId then
-                targetTabId = id
-                targetTabData = data
-                break
+    -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ TAB =====
+    local TabObject = {}
+    local yPositions = {}
+    
+    function TabObject:NewSection(sectionName)
+        local currentY = 0
+        for _, child in pairs(container:GetChildren()) do
+            if child:IsA("TextLabel") and child.Text:find("//") then
+                currentY = currentY + 40
             end
         end
-        
-        -- Если не нашли, используем первую вкладку или ту, которая была создана последней
-        if not targetTabData then
-            for id, data in pairs(Tabs) do
-                targetTabId = id
-                targetTabData = data
-                break
-            end
-        end
-        
-        if not targetTabData then
-            warn("No tab found for section!")
-            return {}
-        end
-        
-        local container = targetTabData.container
-        local tabFrame = targetTabData.frame
-        
-        -- Получаем ID секции для хранения позиций
-        local sectionId = getCodeLocationID()
-        
-        -- Создаем или получаем существующую позицию для этой секции
-        if not targetTabData.yPositions[sectionId] then
-            -- Считаем количество уже созданных секций
-            local sectionCount = 0
-            for _, child in pairs(container:GetChildren()) do
-                if child:IsA("TextLabel") and child.Text:find("//") then
-                    sectionCount = sectionCount + 1
-                end
-            end
-            targetTabData.yPositions[sectionId] = 40 * sectionCount
-        end
-        
-        local currentY = targetTabData.yPositions[sectionId]
         
         -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
@@ -497,16 +422,12 @@ function Library:NewTab(name)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
-        -- Обновляем позицию для следующей секции
-        targetTabData.yPositions[sectionId] = currentY + 40
-        
         -- Счетчик элементов внутри этой секции
         local elementY = currentY + 40
         
         -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ SECTION =====
         local SectionObject = {}
         
-        -- Метод для создания кнопки
         function SectionObject:NewButton(buttonName, description, callback)
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
@@ -571,7 +492,6 @@ function Library:NewTab(name)
             return SectionObject
         end
         
-        -- Метод для создания переключателя
         function SectionObject:NewToggle(toggleName, description, callback)
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -653,7 +573,6 @@ function Library:NewTab(name)
             return SectionObject
         end
         
-        -- Метод для создания слайдера
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 70)
@@ -770,390 +689,10 @@ function Library:NewTab(name)
             return SectionObject
         end
         
-        -- Метод для создания выпадающего списка
-        function SectionObject:NewDropdown(dropdownName, description)
-            local dropdownFrame = Instance.new("Frame")
-            dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
-            dropdownFrame.Position = UDim2.new(0, 0, 0, elementY)
-            dropdownFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-            dropdownFrame.BorderSizePixel = 2
-            dropdownFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
-            dropdownFrame.Parent = container
-            dropdownFrame.ClipsDescendants = true
-            
-            local dropdownButton = Instance.new("TextButton")
-            dropdownButton.Size = UDim2.new(1, 0, 0, 50)
-            dropdownButton.Position = UDim2.new(0, 0, 0, 0)
-            dropdownButton.BackgroundTransparency = 1
-            dropdownButton.Text = ""
-            dropdownButton.Parent = dropdownFrame
-            
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -50, 0, 25)
-            nameLabel.Position = UDim2.new(0, 10, 0, 5)
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = dropdownName
-            nameLabel.TextColor3 = CurrentColor
-            nameLabel.TextSize = 16
-            nameLabel.Font = Enum.Font.Code
-            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-            nameLabel.Parent = dropdownFrame
-            
-            local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -50, 0, 20)
-            descLabel.Position = UDim2.new(0, 10, 0, 25)
-            descLabel.BackgroundTransparency = 1
-            descLabel.Text = description or ""
-            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-            descLabel.TextSize = 12
-            descLabel.Font = Enum.Font.Code
-            descLabel.TextXAlignment = Enum.TextXAlignment.Left
-            descLabel.Parent = dropdownFrame
-            
-            local arrowLabel = Instance.new("TextLabel")
-            arrowLabel.Size = UDim2.new(0, 30, 0, 30)
-            arrowLabel.Position = UDim2.new(1, -40, 0, 10)
-            arrowLabel.BackgroundTransparency = 1
-            arrowLabel.Text = "▼"
-            arrowLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-            arrowLabel.TextSize = 20
-            arrowLabel.Font = Enum.Font.Code
-            arrowLabel.Parent = dropdownFrame
-            
-            local dropdownContent = Instance.new("Frame")
-            dropdownContent.Name = "DropdownContent"
-            dropdownContent.Size = UDim2.new(1, 0, 0, 0)
-            dropdownContent.Position = UDim2.new(0, 0, 0, 50)
-            dropdownContent.BackgroundTransparency = 1
-            dropdownContent.Parent = dropdownFrame
-            dropdownContent.Visible = false
-            
-            local isOpen = false
-            local contentY = 0
-            
-            local function toggleDropdown()
-                isOpen = not isOpen
-                
-                if isOpen then
-                    arrowLabel.Text = "▲"
-                    dropdownContent.Visible = true
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
-                else
-                    arrowLabel.Text = "▼"
-                    dropdownContent.Visible = false
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
-                end
-            end
-            
-            dropdownButton.MouseButton1Click:Connect(toggleDropdown)
-            
-            elementY = elementY + 50
-            
-            -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ DROPDOWN =====
-            local DropdownObject = {}
-            
-            function DropdownObject:NewButton(buttonName, buttonCallback)
-                local btnY = contentY
-                
-                local buttonFrame = Instance.new("Frame")
-                buttonFrame.Size = UDim2.new(1, -20, 0, 40)
-                buttonFrame.Position = UDim2.new(0, 10, 0, btnY)
-                buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                buttonFrame.BorderSizePixel = 1
-                buttonFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
-                buttonFrame.Parent = dropdownContent
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -20, 1, 0)
-                nameLabel.Position = UDim2.new(0, 10, 0, 0)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = buttonName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-                nameLabel.TextSize = 14
-                nameLabel.Font = Enum.Font.Code
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = buttonFrame
-                
-                local button = Instance.new("TextButton")
-                button.Size = UDim2.new(1, 0, 1, 0)
-                button.BackgroundTransparency = 1
-                button.Text = ""
-                button.Parent = buttonFrame
-                
-                button.MouseEnter:Connect(function()
-                    buttonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                end)
-                
-                button.MouseLeave:Connect(function()
-                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                end)
-                
-                button.MouseButton1Click:Connect(function()
-                    buttonFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                    task.wait(0.1)
-                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                    
-                    if buttonCallback then
-                        local success, err = pcall(buttonCallback)
-                        if not success then warn("Error in dropdown button callback: " .. err) end
-                    end
-                end)
-                
-                contentY = contentY + 45
-                dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
-                
-                if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
-                end
-            end
-            
-            function DropdownObject:NewToggle(toggleName, description, callback)
-                local btnY = contentY
-                
-                local toggleFrame = Instance.new("Frame")
-                toggleFrame.Size = UDim2.new(1, -20, 0, 50)
-                toggleFrame.Position = UDim2.new(0, 10, 0, btnY)
-                toggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                toggleFrame.BorderSizePixel = 1
-                toggleFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
-                toggleFrame.Parent = dropdownContent
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -80, 0, 25)
-                nameLabel.Position = UDim2.new(0, 10, 0, 5)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = toggleName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-                nameLabel.TextSize = 14
-                nameLabel.Font = Enum.Font.Code
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = toggleFrame
-                
-                local descLabel = Instance.new("TextLabel")
-                descLabel.Size = UDim2.new(1, -80, 0, 20)
-                descLabel.Position = UDim2.new(0, 10, 0, 25)
-                descLabel.BackgroundTransparency = 1
-                descLabel.Text = description or ""
-                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-                descLabel.TextSize = 12
-                descLabel.Font = Enum.Font.Code
-                descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                descLabel.Parent = toggleFrame
-                
-                local toggleBg = Instance.new("Frame")
-                toggleBg.Size = UDim2.new(0, 50, 0, 24)
-                toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-                toggleBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                toggleBg.BorderSizePixel = 2
-                toggleBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
-                toggleBg.Parent = toggleFrame
-                
-                local toggleIndicator = Instance.new("Frame")
-                toggleIndicator.Size = UDim2.new(0, 20, 0, 16)
-                toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-                toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-                toggleIndicator.BorderSizePixel = 1
-                toggleIndicator.BorderColor3 = Color3.fromRGB(140, 140, 140)
-                toggleIndicator.Parent = toggleBg
-                
-                local toggleState = false
-                
-                local function updateToggle()
-                    if toggleState then
-                        toggleIndicator.BackgroundColor3 = CurrentColor
-                        toggleIndicator.Position = UDim2.new(1, -22, 0.5, -8)
-                    else
-                        toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-                        toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-                    end
-                end
-                
-                local toggleButton = Instance.new("TextButton")
-                toggleButton.Size = UDim2.new(1, 0, 1, 0)
-                toggleButton.BackgroundTransparency = 1
-                toggleButton.Text = ""
-                toggleButton.Parent = toggleFrame
-                
-                toggleButton.MouseButton1Click:Connect(function()
-                    toggleState = not toggleState
-                    updateToggle()
-                    
-                    if callback then
-                        local success, err = pcall(function() callback(toggleState) end)
-                        if not success then warn("Error in dropdown toggle callback: " .. err) end
-                    end
-                end)
-                
-                contentY = contentY + 55
-                dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
-                
-                if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
-                end
-            end
-            
-            function DropdownObject:NewSlider(sliderName, description, min, max, default, callback)
-                local btnY = contentY
-                
-                local sliderFrame = Instance.new("Frame")
-                sliderFrame.Size = UDim2.new(1, -20, 0, 70)
-                sliderFrame.Position = UDim2.new(0, 10, 0, btnY)
-                sliderFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                sliderFrame.BorderSizePixel = 1
-                sliderFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
-                sliderFrame.Parent = dropdownContent
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -20, 0, 25)
-                nameLabel.Position = UDim2.new(0, 10, 0, 5)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = sliderName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-                nameLabel.TextSize = 14
-                nameLabel.Font = Enum.Font.Code
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = sliderFrame
-                
-                local descLabel = Instance.new("TextLabel")
-                descLabel.Size = UDim2.new(1, -20, 0, 20)
-                descLabel.Position = UDim2.new(0, 10, 0, 25)
-                descLabel.BackgroundTransparency = 1
-                descLabel.Text = description or ""
-                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-                descLabel.TextSize = 12
-                descLabel.Font = Enum.Font.Code
-                descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                descLabel.Parent = sliderFrame
-                
-                local valueLabel = Instance.new("TextLabel")
-                valueLabel.Size = UDim2.new(0, 50, 0, 20)
-                valueLabel.Position = UDim2.new(1, -60, 0, 28)
-                valueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-                valueLabel.BorderSizePixel = 1
-                valueLabel.BorderColor3 = Color3.fromRGB(80, 80, 80)
-                valueLabel.Text = tostring(default or min)
-                valueLabel.TextColor3 = CurrentColor
-                valueLabel.TextSize = 12
-                valueLabel.Font = Enum.Font.Code
-                valueLabel.Parent = sliderFrame
-                
-                local sliderBg = Instance.new("Frame")
-                sliderBg.Size = UDim2.new(1, -80, 0, 10)
-                sliderBg.Position = UDim2.new(0, 10, 0, 50)
-                sliderBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                sliderBg.BorderSizePixel = 1
-                sliderBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
-                sliderBg.Parent = sliderFrame
-                
-                local sliderFill = Instance.new("Frame")
-                sliderFill.Size = UDim2.new(0, 0, 1, 0)
-                sliderFill.BackgroundColor3 = CurrentColor
-                sliderFill.BorderSizePixel = 0
-                sliderFill.Parent = sliderBg
-                
-                local sliderButton = Instance.new("TextButton")
-                sliderButton.Size = UDim2.new(1, 0, 1, 0)
-                sliderButton.BackgroundTransparency = 1
-                sliderButton.Text = ""
-                sliderButton.Parent = sliderBg
-                
-                local currentValue = default or min
-                local dragging = false
-                
-                local function updateSlider(input)
-                    local mousePos = input.Position
-                    local absPos = sliderBg.AbsolutePosition
-                    local absSize = sliderBg.AbsoluteSize.X
-                    
-                    local relativeX = math.clamp(mousePos.X - absPos.X, 0, absSize)
-                    local percent = relativeX / absSize
-                    
-                    currentValue = math.floor(min + (max - min) * percent)
-                    currentValue = math.clamp(currentValue, min, max)
-                    
-                    sliderFill.Size = UDim2.new(percent, 0, 1, 0)
-                    valueLabel.Text = tostring(currentValue)
-                    
-                    if callback then
-                        local success, err = pcall(function() callback(currentValue) end)
-                        if not success then warn("Error in dropdown slider callback: " .. err) end
-                    end
-                end
-                
-                if default then
-                    local percent = (default - min) / (max - min)
-                    sliderFill.Size = UDim2.new(percent, 0, 1, 0)
-                    valueLabel.Text = tostring(default)
-                    if callback then pcall(function() callback(default) end) end
-                end
-                
-                sliderButton.MouseButton1Down:Connect(function(input)
-                    dragging = true
-                    updateSlider(input)
-                end)
-                
-                UserInputService.InputChanged:Connect(function(input)
-                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        updateSlider(input)
-                    end
-                end)
-                
-                UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = false
-                    end
-                end)
-                
-                contentY = contentY + 75
-                dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
-                
-                if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
-                end
-            end
-            
-            return DropdownObject
-        end
-        
-        -- Метод для создания текстового блока
-        function SectionObject:NewTextBlock(text)
-            local lines = #text:split("\n")
-            local height = math.max(60, 40 + lines * 20)
-            
-            local textFrame = Instance.new("Frame")
-            textFrame.Size = UDim2.new(1, 0, 0, height)
-            textFrame.Position = UDim2.new(0, 0, 0, elementY)
-            textFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-            textFrame.BorderSizePixel = 2
-            textFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
-            textFrame.Parent = container
-            
-            local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, -20, 1, -20)
-            textLabel.Position = UDim2.new(0, 10, 0, 10)
-            textLabel.BackgroundTransparency = 1
-            textLabel.Text = text or ""
-            textLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            textLabel.TextSize = 14
-            textLabel.Font = Enum.Font.Code
-            textLabel.TextWrapped = true
-            textLabel.TextXAlignment = Enum.TextXAlignment.Left
-            textLabel.TextYAlignment = Enum.TextYAlignment.Top
-            textLabel.Parent = textFrame
-            
-            elementY = elementY + height + 10
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
-            
-            return SectionObject
-        end
-        
         return SectionObject
     end
     
-    -- Возвращаем объект с методом NewSection
-    return {
-        NewSection = createSection
-    }
+    return TabObject
 end
 
 return Library
