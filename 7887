@@ -1,8 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 7.0.0 - ПОЛНАЯ ИСПРАВЛЕННАЯ ВЕРСИЯ
-    Добавлен метод NewDropdown и все недостающие функции
+    Версия: 7.1.0 - ИСПРАВЛЕННАЯ ВЕРСИЯ С РАБОЧИМ DROPDOWN
 ]]
 
 local Library = {}
@@ -425,6 +424,12 @@ function Library:NewTab(name)
         -- Счетчик элементов внутри этой секции
         local elementY = currentY + 40
         
+        -- Функция обновления позиций всех элементов после определенного индекса
+        local function updatePositionsAfter(startY)
+            -- Эта функция будет обновлять CanvasSize фрейма
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
+        end
+        
         -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ SECTION =====
         local SectionObject = {}
         
@@ -487,7 +492,7 @@ function Library:NewTab(name)
             end)
             
             elementY = elementY + 70
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
+            updatePositionsAfter(elementY)
             
             return SectionObject
         end
@@ -568,7 +573,7 @@ function Library:NewTab(name)
             end)
             
             elementY = elementY + 60
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
+            updatePositionsAfter(elementY)
             
             return SectionObject
         end
@@ -684,12 +689,12 @@ function Library:NewTab(name)
             end)
             
             elementY = elementY + 80
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
+            updatePositionsAfter(elementY)
             
             return SectionObject
         end
         
-        -- МЕТОД NEWDROPDOWN - создание выпадающего списка
+        -- ИСПРАВЛЕННЫЙ МЕТОД NEWDROPDOWN
         function SectionObject:NewDropdown(dropdownName, description)
             local dropdownFrame = Instance.new("Frame")
             dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -749,6 +754,36 @@ function Library:NewTab(name)
             
             local isOpen = false
             local contentY = 0
+            local baseY = elementY -- Запоминаем базовую позицию дропдауна
+            
+            local function updateDropdownPosition()
+                -- Обновляем размер дропдауна
+                if isOpen then
+                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                else
+                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
+                end
+                
+                -- Обновляем позиции всех элементов после дропдауна
+                local currentY = baseY + dropdownFrame.AbsoluteSize.Y
+                local found = false
+                
+                for _, child in pairs(container:GetChildren()) do
+                    if child == dropdownFrame then
+                        found = true
+                    elseif found and child:IsA("Frame") and child ~= dropdownFrame then
+                        -- Сдвигаем все последующие элементы
+                        child.Position = UDim2.new(0, 0, 0, currentY)
+                        currentY = currentY + child.AbsoluteSize.Y + 10
+                    end
+                end
+                
+                -- Обновляем elementY для последующих элементов
+                elementY = baseY + dropdownFrame.AbsoluteSize.Y
+                
+                -- Обновляем CanvasSize
+                tabFrame.CanvasSize = UDim2.new(0, 0, 0, currentY + 10)
+            end
             
             local function toggleDropdown()
                 isOpen = not isOpen
@@ -756,16 +791,18 @@ function Library:NewTab(name)
                 if isOpen then
                     arrowLabel.Text = "▲"
                     dropdownContent.Visible = true
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
                 else
                     arrowLabel.Text = "▼"
                     dropdownContent.Visible = false
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
                 end
+                
+                updateDropdownPosition()
             end
             
             dropdownButton.MouseButton1Click:Connect(toggleDropdown)
             
+            -- Сохраняем текущую позицию для последующего обновления
+            local dropdownBaseY = elementY
             elementY = elementY + 50
             
             -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ DROPDOWN =====
@@ -822,7 +859,7 @@ function Library:NewTab(name)
                 dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
                 
                 if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                    updateDropdownPosition()
                 end
             end
             
@@ -907,7 +944,7 @@ function Library:NewTab(name)
                 dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
                 
                 if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                    updateDropdownPosition()
                 end
             end
             
@@ -1027,7 +1064,7 @@ function Library:NewTab(name)
                 dropdownContent.Size = UDim2.new(1, 0, 0, contentY)
                 
                 if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
+                    updateDropdownPosition()
                 end
             end
             
@@ -1061,7 +1098,7 @@ function Library:NewTab(name)
             textLabel.Parent = textFrame
             
             elementY = elementY + height + 10
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
+            updatePositionsAfter(elementY)
             
             return SectionObject
         end
