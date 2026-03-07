@@ -1,8 +1,8 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 4.0.0 - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ АРХИТЕКТУРА
-    Теперь элементы всегда попадают в ту вкладку, где были созданы
+    Версия: 5.0.0 - МАГИЧЕСКАЯ ВЕРСИЯ
+    Теперь кнопки сами понимают, в какой вкладке находятся!
 ]]
 
 local Library = {}
@@ -16,7 +16,7 @@ GUI.Parent = CoreGui
 GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 GUI.ResetOnSpawn = false
 
--- Глобальные элементы интерфейса
+-- Глобальные элементы
 local MainFrame = nil
 local ColumnsFrame = nil
 local TabButtons = {}
@@ -24,7 +24,21 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local IsVisible = true
 local HideButton = nil
 
--- ===== ОСНОВНАЯ БИБЛИОТЕКА =====
+-- МАГИЯ: Функция которая определяет текущую секцию по стеку вызовов
+local function getCurrentSection()
+    -- Эта функция использует отладочную информацию, чтобы понять,
+    -- из какого контекста был вызван метод
+    local info = debug.getinfo(3, "S")  -- Смотрим на 3 уровня выше
+    local source = info.source or ""
+    local linedefined = info.linedefined or 0
+    
+    -- Создаем уникальный ключ на основе места в коде
+    return source .. ":" .. linedefined
+end
+
+-- Хранилище для всех элементов
+local Elements = {}
+local CurrentSection = nil
 
 function Library:CreateLib(title, theme)
     MainFrame = Instance.new("Frame")
@@ -274,10 +288,11 @@ function Library:CreateLib(title, theme)
 end
 
 -- ===== КЛАСС TAB =====
-
 function Library:NewTab(name)
-    local tabContainer = ColumnsFrame:FindFirstChild("TabContainer") or Instance.new("Frame")
-    if not tabContainer.Parent then
+    -- Создаем контейнер для вкладок если его нет
+    local tabContainer = ColumnsFrame:FindFirstChild("TabContainer")
+    if not tabContainer then
+        tabContainer = Instance.new("Frame")
         tabContainer.Name = "TabContainer"
         tabContainer.Size = UDim2.new(1, 0, 1, 0)
         tabContainer.BackgroundTransparency = 1
@@ -286,7 +301,7 @@ function Library:NewTab(name)
     
     -- Создаем фрейм для этой вкладки
     local tabFrame = Instance.new("ScrollingFrame")
-    tabFrame.Name = name .. "Tab"
+    tabFrame.Name = "Tab_" .. name
     tabFrame.Size = UDim2.new(1, 0, 1, 0)
     tabFrame.Position = UDim2.new(0, 0, 0, 0)
     tabFrame.BackgroundTransparency = 1
@@ -297,7 +312,7 @@ function Library:NewTab(name)
     tabFrame.Parent = tabContainer
     tabFrame.Visible = false
     
-    -- Контейнер для элементов внутри вкладки (с отступами)
+    -- Контейнер для элементов внутри вкладки
     local container = Instance.new("Frame")
     container.Name = "Container"
     container.Size = UDim2.new(1, -20, 1, -20)
@@ -309,99 +324,112 @@ function Library:NewTab(name)
     local tabBar = MainFrame:FindFirstChild("TabBar")
     local tabButtonContainer = tabBar and tabBar:FindFirstChild("TabContainer")
     
-    local tabButton = Instance.new("TextButton")
-    tabButton.Name = "TabButton_" .. name
-    tabButton.Size = UDim2.new(0, 100, 1, -2)
-    tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
-    tabButton.BackgroundTransparency = 1
-    tabButton.Text = name
-    tabButton.TextColor3 = (#TabButtons == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)
-    tabButton.TextSize = 14
-    tabButton.Font = Enum.Font.Code
-    tabButton.BorderSizePixel = 0
-    tabButton.Parent = tabButtonContainer
-    
-    table.insert(TabButtons, tabButton)
-    
-    -- Если это первая вкладка, показываем её
-    if #TabButtons == 1 then
-        tabFrame.Visible = true
-        local line = Instance.new("Frame")
-        line.Size = UDim2.new(1, 0, 0, 2)
-        line.Position = UDim2.new(0, 0, 1, -2)
-        line.BackgroundColor3 = CurrentColor
-        line.BorderSizePixel = 0
-        line.Parent = tabButton
-    end
-    
-    -- Обработчик клика по вкладке
-    tabButton.MouseButton1Click:Connect(function()
-        -- Скрываем все вкладки
-        for _, child in pairs(tabContainer:GetChildren()) do
-            if child:IsA("ScrollingFrame") then
-                child.Visible = false
-            end
+    if tabButtonContainer then
+        local tabButton = Instance.new("TextButton")
+        tabButton.Name = "TabButton_" .. name
+        tabButton.Size = UDim2.new(0, 100, 1, -2)
+        tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
+        tabButton.BackgroundTransparency = 1
+        tabButton.Text = name
+        tabButton.TextColor3 = (#TabButtons == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)
+        tabButton.TextSize = 14
+        tabButton.Font = Enum.Font.Code
+        tabButton.BorderSizePixel = 0
+        tabButton.Parent = tabButtonContainer
+        
+        table.insert(TabButtons, tabButton)
+        
+        -- Если это первая вкладка, показываем её
+        if #TabButtons == 1 then
+            tabFrame.Visible = true
+            local line = Instance.new("Frame")
+            line.Size = UDim2.new(1, 0, 0, 2)
+            line.Position = UDim2.new(0, 0, 1, -2)
+            line.BackgroundColor3 = CurrentColor
+            line.BorderSizePixel = 0
+            line.Parent = tabButton
         end
         
-        -- Показываем выбранную вкладку
-        tabFrame.Visible = true
-        
-        -- Обновляем цвета кнопок
-        for _, btn in ipairs(TabButtons) do
-            btn.TextColor3 = Color3.fromRGB(140, 140, 140)
-            -- Удаляем старую линию
-            for _, child in pairs(btn:GetChildren()) do
-                if child:IsA("Frame") then
-                    child:Destroy()
+        -- Обработчик клика по вкладке
+        tabButton.MouseButton1Click:Connect(function()
+            -- Скрываем все вкладки
+            for _, child in pairs(tabContainer:GetChildren()) do
+                if child:IsA("ScrollingFrame") then
+                    child.Visible = false
                 end
             end
+            
+            -- Показываем выбранную вкладку
+            tabFrame.Visible = true
+            
+            -- Обновляем цвета кнопок
+            for _, btn in ipairs(TabButtons) do
+                btn.TextColor3 = Color3.fromRGB(140, 140, 140)
+                -- Удаляем старую линию
+                for _, child in pairs(btn:GetChildren()) do
+                    if child:IsA("Frame") then
+                        child:Destroy()
+                    end
+                end
+            end
+            
+            tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            
+            -- Добавляем линию под выбранной вкладкой
+            local line = Instance.new("Frame")
+            line.Size = UDim2.new(1, 0, 0, 2)
+            line.Position = UDim2.new(0, 0, 1, -2)
+            line.BackgroundColor3 = CurrentColor
+            line.BorderSizePixel = 0
+            line.Parent = tabButton
+        end)
+        
+        -- Обновляем размеры кнопок
+        local function updateTabSizes()
+            local containerWidth = tabButtonContainer.AbsoluteSize.X
+            local tabCount = #TabButtons
+            if tabCount == 0 then return end
+            
+            local tabWidth = math.floor((containerWidth - 5 * (tabCount - 1)) / tabCount)
+            tabWidth = math.clamp(tabWidth, 70, 120)
+            
+            for i, btn in ipairs(TabButtons) do
+                btn.Size = UDim2.new(0, tabWidth, 1, -2)
+                btn.Position = UDim2.new(0, (i - 1) * (tabWidth + 5) + 5, 0, 1)
+            end
         end
         
-        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        
-        -- Добавляем линию под выбранной вкладкой
-        local line = Instance.new("Frame")
-        line.Size = UDim2.new(1, 0, 0, 2)
-        line.Position = UDim2.new(0, 0, 1, -2)
-        line.BackgroundColor3 = CurrentColor
-        line.BorderSizePixel = 0
-        line.Parent = tabButton
-    end)
-    
-    -- Обновляем размеры кнопок
-    local function updateTabSizes()
-        local containerWidth = tabButtonContainer and tabButtonContainer.AbsoluteSize.X or 500
-        local tabCount = #TabButtons
-        if tabCount == 0 then return end
-        
-        local tabWidth = math.floor((containerWidth - 5 * (tabCount - 1)) / tabCount)
-        tabWidth = math.clamp(tabWidth, 70, 120)
-        
-        for i, btn in ipairs(TabButtons) do
-            btn.Size = UDim2.new(0, tabWidth, 1, -2)
-            btn.Position = UDim2.new(0, (i - 1) * (tabWidth + 5) + 5, 0, 1)
-        end
-    end
-    
-    if tabButtonContainer then
         tabButtonContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTabSizes)
+        updateTabSizes()
     end
-    updateTabSizes()
     
-    -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ TAB С МЕТОДАМИ =====
-    -- КАЖДЫЙ ТАБ ИМЕЕТ СВОИ СОБСТВЕННЫЕ ДАННЫЕ И МЕТОДЫ
+    -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ TAB =====
     local TabObject = {}
-    local yPosition = 0  -- СЧЁТЧИК ПОЗИЦИИ ДЛЯ ЭТОГО ТАБА
+    local yPositions = {}  -- Хранилище позиций для разных секций
     
-    -- Метод для создания секции в этом табе
+    -- САМАЯ ВАЖНАЯ ФУНКЦИЯ: создание секции
     function TabObject:NewSection(sectionName)
-        local sectionY = yPosition
-        yPosition = yPosition + 40  -- Оставляем место для заголовка секции
+        -- Получаем уникальный ID для этой секции
+        local sectionId = getCurrentSection()
+        
+        -- Создаем или получаем существующую позицию для этой секции
+        if not yPositions[sectionId] then
+            -- Считаем количество уже созданных секций
+            local sectionCount = 0
+            for _, child in pairs(container:GetChildren()) do
+                if child:IsA("TextLabel") and child.Text:find("//") then
+                    sectionCount = sectionCount + 1
+                end
+            end
+            yPositions[sectionId] = 40 * sectionCount
+        end
+        
+        local currentY = yPositions[sectionId]
         
         -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
-        sectionTitle.Position = UDim2.new(0, 0, 0, sectionY)
+        sectionTitle.Position = UDim2.new(0, 0, 0, currentY)
         sectionTitle.BackgroundTransparency = 1
         sectionTitle.Text = "// " .. sectionName
         sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
@@ -413,22 +441,25 @@ function Library:NewTab(name)
         -- Линия под заголовком
         local sectionLine = Instance.new("Frame")
         sectionLine.Size = UDim2.new(1, 0, 0, 2)
-        sectionLine.Position = UDim2.new(0, 0, 0, sectionY + 25)
+        sectionLine.Position = UDim2.new(0, 0, 0, currentY + 25)
         sectionLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
-        -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ SECTION С МЕТОДАМИ =====
-        -- ВСЕ МЕТОДЫ ИСПОЛЬЗУЮТ ЛОКАЛЬНЫЕ ПЕРЕМЕННЫЕ ЭТОГО ТАБА (yPosition, container, tabFrame)
+        -- Обновляем позицию для следующей секции
+        yPositions[sectionId] = currentY + 40
+        
+        -- Счетчик элементов внутри этой секции
+        local elementY = currentY + 40
+        
+        -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ SECTION =====
         local SectionObject = {}
         
         -- Метод для создания кнопки
         function SectionObject:NewButton(buttonName, description, callback)
-            local currentY = yPosition
-            
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
-            buttonFrame.Position = UDim2.new(0, 0, 0, currentY)
+            buttonFrame.Position = UDim2.new(0, 0, 0, elementY)
             buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             buttonFrame.BorderSizePixel = 2
             buttonFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -483,19 +514,17 @@ function Library:NewTab(name)
                 end
             end)
             
-            yPosition = currentY + 70
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
+            elementY = elementY + 70
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
             
             return SectionObject
         end
         
         -- Метод для создания переключателя
         function SectionObject:NewToggle(toggleName, description, callback)
-            local currentY = yPosition
-            
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 50)
-            toggleFrame.Position = UDim2.new(0, 0, 0, currentY)
+            toggleFrame.Position = UDim2.new(0, 0, 0, elementY)
             toggleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             toggleFrame.BorderSizePixel = 2
             toggleFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -567,19 +596,17 @@ function Library:NewTab(name)
                 end
             end)
             
-            yPosition = currentY + 60
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
+            elementY = elementY + 60
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
             
             return SectionObject
         end
         
         -- Метод для создания слайдера
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
-            local currentY = yPosition
-            
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 70)
-            sliderFrame.Position = UDim2.new(0, 0, 0, currentY)
+            sliderFrame.Position = UDim2.new(0, 0, 0, elementY)
             sliderFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             sliderFrame.BorderSizePixel = 2
             sliderFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -686,23 +713,17 @@ function Library:NewTab(name)
                 end
             end)
             
-            yPosition = currentY + 80
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
+            elementY = elementY + 80
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
             
             return SectionObject
         end
         
         -- Метод для создания выпадающего списка
         function SectionObject:NewDropdown(dropdownName, description)
-            local currentY = yPosition
-            local isOpen = false
-            local contentY = 0
-            local dropdownFrame
-            local dropdownContent
-            
-            dropdownFrame = Instance.new("Frame")
+            local dropdownFrame = Instance.new("Frame")
             dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
-            dropdownFrame.Position = UDim2.new(0, 0, 0, currentY)
+            dropdownFrame.Position = UDim2.new(0, 0, 0, elementY)
             dropdownFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             dropdownFrame.BorderSizePixel = 2
             dropdownFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -748,7 +769,7 @@ function Library:NewTab(name)
             arrowLabel.Font = Enum.Font.Code
             arrowLabel.Parent = dropdownFrame
             
-            dropdownContent = Instance.new("Frame")
+            local dropdownContent = Instance.new("Frame")
             dropdownContent.Name = "DropdownContent"
             dropdownContent.Size = UDim2.new(1, 0, 0, 0)
             dropdownContent.Position = UDim2.new(0, 0, 0, 50)
@@ -756,18 +777,8 @@ function Library:NewTab(name)
             dropdownContent.Parent = dropdownFrame
             dropdownContent.Visible = false
             
-            -- Функция обновления позиций всех элементов в контейнере
-            local function updateAllPositions()
-                local startY = 40
-                for _, child in ipairs(container:GetChildren()) do
-                    if child:IsA("Frame") and child ~= sectionTitle and child ~= sectionLine then
-                        child.Position = UDim2.new(0, 0, 0, startY)
-                        startY = startY + child.Size.Y.Offset + 10
-                    end
-                end
-                yPosition = startY
-                tabFrame.CanvasSize = UDim2.new(0, 0, 0, startY + 10)
-            end
+            local isOpen = false
+            local contentY = 0
             
             local function toggleDropdown()
                 isOpen = not isOpen
@@ -781,11 +792,11 @@ function Library:NewTab(name)
                     dropdownContent.Visible = false
                     dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
                 end
-                
-                updateAllPositions()
             end
             
             dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+            
+            elementY = elementY + 50
             
             -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ DROPDOWN =====
             local DropdownObject = {}
@@ -843,8 +854,6 @@ function Library:NewTab(name)
                 if isOpen then
                     dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
                 end
-                
-                updateAllPositions()
             end
             
             function DropdownObject:NewToggle(toggleName, description, callback)
@@ -930,8 +939,6 @@ function Library:NewTab(name)
                 if isOpen then
                     dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
                 end
-                
-                updateAllPositions()
             end
             
             function DropdownObject:NewSlider(sliderName, description, min, max, default, callback)
@@ -1052,26 +1059,19 @@ function Library:NewTab(name)
                 if isOpen then
                     dropdownFrame.Size = UDim2.new(1, 0, 0, 50 + contentY)
                 end
-                
-                updateAllPositions()
             end
-            
-            yPosition = currentY + 50
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
             
             return DropdownObject
         end
         
         -- Метод для создания текстового блока
         function SectionObject:NewTextBlock(text)
-            local currentY = yPosition
-            
             local lines = #text:split("\n")
             local height = math.max(60, 40 + lines * 20)
             
             local textFrame = Instance.new("Frame")
             textFrame.Size = UDim2.new(1, 0, 0, height)
-            textFrame.Position = UDim2.new(0, 0, 0, currentY)
+            textFrame.Position = UDim2.new(0, 0, 0, elementY)
             textFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             textFrame.BorderSizePixel = 2
             textFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -1090,8 +1090,8 @@ function Library:NewTab(name)
             textLabel.TextYAlignment = Enum.TextYAlignment.Top
             textLabel.Parent = textFrame
             
-            yPosition = currentY + height + 10
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
+            elementY = elementY + height + 10
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, elementY + 10)
             
             return SectionObject
         end
