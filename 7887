@@ -1,7 +1,8 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Библиотека для создания интерфейса
-    Версия: 6.0.0 - МАГИЧЕСКАЯ ВЕРСИЯ С АВТООПРЕДЕЛЕНИЕМ ВКЛАДОК
+    Версия: 7.0.0 - СУПЕР-МАГИЧЕСКАЯ ВЕРСИЯ
+    Теперь можно использовать одинаковые имена переменных!
 ]]
 
 local Library = {}
@@ -23,40 +24,24 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local IsVisible = true
 local HideButton = nil
 
--- Хранилище для всех вкладок и секций
-local Tabs = {}
-local CurrentTab = nil
+-- Хранилище для всех элементов с привязкой к месту в коде
+local Elements = {}
 
--- МАГИЯ: Функция которая определяет текущую вкладку по стеку вызовов
-local function getCurrentTab()
-    -- Эта функция использует отладочную информацию, чтобы понять,
-    -- из какого контекста был вызван метод
-    local level = 3
-    local info = debug.getinfo(level, "S")
+-- МАГИЯ: Функция которая определяет уникальный ID места в коде
+local function getCodeLocationID()
+    local info = debug.getinfo(3, "S")  -- Смотрим на 3 уровня выше
+    if not info then return "unknown" end
     
-    -- Поднимаемся выше, пока не найдем информацию о вызове
-    while info and (info.source == "=[C]" or info.linedefined == -1) do
-        level = level + 1
-        info = debug.getinfo(level, "S")
-    end
+    local source = info.source or ""
+    local linedefined = info.linedefined or 0
+    local short_src = info.short_src or ""
     
     -- Создаем уникальный ключ на основе места в коде
-    if info then
-        local source = info.source or ""
-        local linedefined = info.linedefined or 0
-        local key = source .. ":" .. linedefined
-        
-        -- Проверяем, есть ли для этого места сохраненная вкладка
-        for tabName, tabData in pairs(Tabs) do
-            if tabData.sections and tabData.sections[key] then
-                return tabName, tabData.sections[key]
-            end
-        end
-    end
-    
-    -- Если не нашли, возвращаем текущую активную вкладку
-    return CurrentTab, nil
+    return source .. ":" .. linedefined .. ":" .. short_src
 end
+
+-- Хранилище для вкладок
+local Tabs = {}
 
 function Library:CreateLib(title, theme)
     MainFrame = Instance.new("Frame")
@@ -285,11 +270,31 @@ function Library:CreateLib(title, theme)
         end
     end)
     
+    -- Функция обновления размеров табов
+    local function updateTabSizes()
+        local containerWidth = tabContainer.AbsoluteSize.X
+        local tabCount = #TabButtons
+        if tabCount == 0 then return end
+        
+        local tabWidth = math.floor((containerWidth - 5 * (tabCount - 1)) / tabCount)
+        tabWidth = math.clamp(tabWidth, 70, 120)
+        
+        for i, tabBtn in ipairs(TabButtons) do
+            tabBtn.Size = UDim2.new(0, tabWidth, 1, -2)
+            tabBtn.Position = UDim2.new(0, (i - 1) * (tabWidth + 5) + 5, 0, 1)
+        end
+    end
+    
+    tabBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTabSizes)
+    
     return self
 end
 
 -- ===== КЛАСС TAB =====
 function Library:NewTab(name)
+    -- Получаем уникальный ID места создания вкладки
+    local tabId = getCodeLocationID()
+    
     -- Создаем контейнер для вкладок если его нет
     local tabContainer = ColumnsFrame:FindFirstChild("TabContainer")
     if not tabContainer then
@@ -302,7 +307,7 @@ function Library:NewTab(name)
     
     -- Создаем фрейм для этой вкладки
     local tabFrame = Instance.new("ScrollingFrame")
-    tabFrame.Name = "Tab_" .. name
+    tabFrame.Name = "Tab_" .. name .. "_" .. tabId
     tabFrame.Size = UDim2.new(1, 0, 1, 0)
     tabFrame.Position = UDim2.new(0, 0, 0, 0)
     tabFrame.BackgroundTransparency = 1
@@ -322,7 +327,8 @@ function Library:NewTab(name)
     container.Parent = tabFrame
     
     -- Сохраняем данные вкладки
-    Tabs[name] = {
+    Tabs[tabId] = {
+        name = name,
         frame = tabFrame,
         container = container,
         sections = {},
@@ -335,7 +341,7 @@ function Library:NewTab(name)
     
     if tabButtonContainer then
         local tabButton = Instance.new("TextButton")
-        tabButton.Name = "TabButton_" .. name
+        tabButton.Name = "TabButton_" .. name .. "_" .. tabId
         tabButton.Size = UDim2.new(0, 100, 1, -2)
         tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
         tabButton.BackgroundTransparency = 1
@@ -345,13 +351,13 @@ function Library:NewTab(name)
         tabButton.Font = Enum.Font.Code
         tabButton.BorderSizePixel = 0
         tabButton.Parent = tabButtonContainer
+        tabButton.TabId = tabId  -- Сохраняем ID вкладки в кнопке
         
         table.insert(TabButtons, tabButton)
         
         -- Если это первая вкладка, показываем её
         if #TabButtons == 1 then
             tabFrame.Visible = true
-            CurrentTab = name
             local line = Instance.new("Frame")
             line.Size = UDim2.new(1, 0, 0, 2)
             line.Position = UDim2.new(0, 0, 1, -2)
@@ -369,9 +375,13 @@ function Library:NewTab(name)
                 end
             end
             
-            -- Показываем выбранную вкладку
-            tabFrame.Visible = true
-            CurrentTab = name
+            -- Показываем выбранную вкладку по её ID
+            for id, data in pairs(Tabs) do
+                if data.frame == tabFrame then
+                    data.frame.Visible = true
+                    break
+                end
+            end
             
             -- Обновляем цвета кнопок
             for _, btn in ipairs(TabButtons) do
@@ -414,23 +424,47 @@ function Library:NewTab(name)
         updateTabSizes()
     end
     
-    -- ===== ВОЗВРАЩАЕМ ОБЪЕКТ TAB =====
-    local TabObject = {}
-    
-    -- Функция создания секции
-    function TabObject:NewSection(sectionName)
-        -- Получаем уникальный ID для этого места в коде
-        local info = debug.getinfo(2, "S")
-        local source = info.source or ""
-        local linedefined = info.linedefined or 0
-        local sectionId = source .. ":" .. linedefined
+    -- ===== МАГИЧЕСКАЯ ФУНКЦИЯ СОЗДАНИЯ СЕКЦИИ =====
+    -- Она будет автоматически определять вкладку по контексту
+    local function createSection(sectionName)
+        -- Получаем ID текущей вкладки из контекста
+        local contextId = getCodeLocationID()
         
-        -- Получаем данные текущей вкладки
-        local tabData = Tabs[name]
-        local container = tabData.container
+        -- Ищем, какая вкладка соответствует этому контексту
+        local targetTabId = nil
+        local targetTabData = nil
+        
+        -- Проходим по всем вкладкам и ищем ту, которая была создана в этом контексте
+        for id, data in pairs(Tabs) do
+            if id == contextId then
+                targetTabId = id
+                targetTabData = data
+                break
+            end
+        end
+        
+        -- Если не нашли, используем первую вкладку или ту, которая была создана последней
+        if not targetTabData then
+            for id, data in pairs(Tabs) do
+                targetTabId = id
+                targetTabData = data
+                break
+            end
+        end
+        
+        if not targetTabData then
+            warn("No tab found for section!")
+            return {}
+        end
+        
+        local container = targetTabData.container
+        local tabFrame = targetTabData.frame
+        
+        -- Получаем ID секции для хранения позиций
+        local sectionId = getCodeLocationID()
         
         -- Создаем или получаем существующую позицию для этой секции
-        if not tabData.yPositions[sectionId] then
+        if not targetTabData.yPositions[sectionId] then
             -- Считаем количество уже созданных секций
             local sectionCount = 0
             for _, child in pairs(container:GetChildren()) do
@@ -438,13 +472,10 @@ function Library:NewTab(name)
                     sectionCount = sectionCount + 1
                 end
             end
-            tabData.yPositions[sectionId] = 40 * sectionCount
+            targetTabData.yPositions[sectionId] = 40 * sectionCount
         end
         
-        -- Сохраняем секцию для магического определения вкладки
-        tabData.sections[sectionId] = true
-        
-        local currentY = tabData.yPositions[sectionId]
+        local currentY = targetTabData.yPositions[sectionId]
         
         -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
@@ -467,7 +498,7 @@ function Library:NewTab(name)
         sectionLine.Parent = container
         
         -- Обновляем позицию для следующей секции
-        tabData.yPositions[sectionId] = currentY + 40
+        targetTabData.yPositions[sectionId] = currentY + 40
         
         -- Счетчик элементов внутри этой секции
         local elementY = currentY + 40
@@ -1119,7 +1150,10 @@ function Library:NewTab(name)
         return SectionObject
     end
     
-    return TabObject
+    -- Возвращаем объект с методом NewSection
+    return {
+        NewSection = createSection
+    }
 end
 
 return Library
