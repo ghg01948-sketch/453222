@@ -1,7 +1,6 @@
 --[[
     CODE B HACK MODULE // SStwendRT
-    Библиотека для создания интерфейса
-    Версия: 7.1.0 - ИСПРАВЛЕННАЯ ВЕРСИЯ С РАБОЧИМ DROPDOWN
+    Version: 7.0.0
 ]]
 
 local Library = {}
@@ -15,7 +14,6 @@ GUI.Parent = CoreGui
 GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 GUI.ResetOnSpawn = false
 
--- Глобальные элементы
 local MainFrame = nil
 local ColumnsFrame = nil
 local TabButtons = {}
@@ -23,7 +21,6 @@ local CurrentColor = Color3.fromRGB(180, 180, 180)
 local IsVisible = true
 local HideButton = nil
 
--- Хранилище для вкладок
 local Tabs = {}
 
 function Library:CreateLib(title, theme)
@@ -83,7 +80,6 @@ function Library:CreateLib(title, theme)
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
     
-    -- Resize button
     local ResizeButton = Instance.new("ImageButton")
     ResizeButton.Name = "ResizeButton"
     ResizeButton.Size = UDim2.new(0, 20, 0, 20)
@@ -109,7 +105,6 @@ function Library:CreateLib(title, theme)
     ColumnsFrame.BackgroundTransparency = 1
     ColumnsFrame.Parent = MainFrame
     
-    -- Tab bar
     local tabBar = Instance.new("Frame")
     tabBar.Name = "TabBar"
     tabBar.Size = UDim2.new(1, -20, 0, 35)
