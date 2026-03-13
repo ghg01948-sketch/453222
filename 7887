@@ -1,7 +1,7 @@
 --[[
     CODE B HACK MODULE // SStwendRT
     Version: 7.0.0
-    Advanced Security Framework // Matrix Edition
+    Advanced Security Framework // Terminal Edition
 ]]
 
 local Library = {}
@@ -24,7 +24,7 @@ GUI.DisplayOrder = 999
 local MainFrame = nil
 local ColumnsFrame = nil
 local TabButtons = {}
-local CurrentColor = Color3.fromRGB(0, 255, 255) -- CYAN для хакерского стиля
+local CurrentColor = Color3.fromRGB(255, 255, 255) -- Белый для акцентов
 local IsVisible = true
 local HideButton = nil
 
@@ -32,7 +32,7 @@ local Tabs = {}
 local MatrixRain = {}
 local GlitchEffects = {}
 
--- Создаем матричный дождь
+-- Создаем матричный дождь (серый/черный)
 local function CreateMatrixRain()
     local matrixHolder = Instance.new("Frame")
     matrixHolder.Name = "MatrixRain"
@@ -51,13 +51,13 @@ local function CreateMatrixRain()
         column.Position = UDim2.new((i-1) * (1/columnCount), 0, 0, 0)
         column.BackgroundTransparency = 1
         column.Text = ""
-        column.TextColor3 = Color3.fromRGB(0, 255, 0)
+        column.TextColor3 = Color3.fromRGB(100, 100, 100) -- Серый
         column.TextSize = 20
         column.Font = Enum.Font.Code
         column.TextXAlignment = Enum.TextXAlignment.Center
         column.TextYAlignment = Enum.TextYAlignment.Top
         column.ZIndex = 0
-        column.TextTransparency = 0.7
+        column.TextTransparency = 0.8
         column.Parent = matrixHolder
         columns[i] = column
     end
@@ -101,13 +101,13 @@ local function CreateMatrixRain()
     return matrixHolder
 end
 
--- Эффект глитча
+-- Эффект глитча (серый)
 local function CreateGlitchEffect()
     local glitch = Instance.new("Frame")
     glitch.Name = "GlitchEffect"
     glitch.Size = UDim2.new(1, 0, 1, 0)
-    glitch.BackgroundColor3 = Color3.new(1, 1, 1)
-    glitch.BackgroundTransparency = 0.9
+    glitch.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    glitch.BackgroundTransparency = 0.95
     glitch.ZIndex = 999
     glitch.Visible = false
     glitch.Parent = GUI
@@ -115,11 +115,11 @@ local function CreateGlitchEffect()
     local glitchLabel = Instance.new("TextLabel")
     glitchLabel.Size = UDim2.new(1, 0, 1, 0)
     glitchLabel.BackgroundTransparency = 1
-    glitchLabel.Text = "ERROR // SYSTEM HACK // ACCESS GRANTED"
-    glitchLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    glitchLabel.Text = "> TERMINAL // ACCESS GRANTED <"
+    glitchLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     glitchLabel.TextSize = 30
     glitchLabel.Font = Enum.Font.Code
-    glitchLabel.TextTransparency = 0.7
+    glitchLabel.TextTransparency = 0.8
     glitchLabel.ZIndex = 999
     glitchLabel.Parent = glitch
     
@@ -137,101 +137,67 @@ function Library:CreateLib(title, theme)
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(0, 500, 0, 650)
     MainFrame.Position = UDim2.new(0.5, -250, 0.5, -325)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    MainFrame.BackgroundTransparency = 0.2
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Темно-серый
+    MainFrame.BackgroundTransparency = 0.1
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = GUI
     MainFrame.Active = true
     MainFrame.ZIndex = 10
     
-    -- Glitch эффект для рамки
-    local glitchBorder = Instance.new("Frame")
-    glitchBorder.Name = "GlitchBorder"
-    glitchBorder.Size = UDim2.new(1, 4, 1, 4)
-    glitchBorder.Position = UDim2.new(0, -2, 0, -2)
-    glitchBorder.BackgroundTransparency = 1
-    glitchBorder.BorderSizePixel = 0
-    glitchBorder.ZIndex = 9
-    glitchBorder.Parent = MainFrame
-    
-    -- Анимированная рамка
+    -- Серая рамка
     local border1 = Instance.new("Frame")
     border1.Name = "Border1"
-    border1.Size = UDim2.new(1, 0, 0, 2)
-    border1.BackgroundColor3 = CurrentColor
+    border1.Size = UDim2.new(1, 0, 0, 1)
+    border1.BackgroundColor3 = Color3.fromRGB(80, 80, 80) -- Серый
     border1.BorderSizePixel = 0
     border1.ZIndex = 11
     border1.Parent = MainFrame
     
     local border2 = Instance.new("Frame")
     border2.Name = "Border2"
-    border2.Size = UDim2.new(0, 2, 1, 0)
-    border2.BackgroundColor3 = CurrentColor
+    border2.Size = UDim2.new(0, 1, 1, 0)
+    border2.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
     border2.BorderSizePixel = 0
     border2.ZIndex = 11
     border2.Parent = MainFrame
     
     local border3 = Instance.new("Frame")
     border3.Name = "Border3"
-    border3.Size = UDim2.new(1, 0, 0, 2)
-    border3.Position = UDim2.new(0, 0, 1, -2)
-    border3.BackgroundColor3 = CurrentColor
+    border3.Size = UDim2.new(1, 0, 0, 1)
+    border3.Position = UDim2.new(0, 0, 1, -1)
+    border3.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
     border3.BorderSizePixel = 0
     border3.ZIndex = 11
     border3.Parent = MainFrame
     
     local border4 = Instance.new("Frame")
     border4.Name = "Border4"
-    border4.Size = UDim2.new(0, 2, 1, 0)
-    border4.Position = UDim2.new(1, -2, 0, 0)
-    border4.BackgroundColor3 = CurrentColor
+    border4.Size = UDim2.new(0, 1, 1, 0)
+    border4.Position = UDim2.new(1, -1, 0, 0)
+    border4.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
     border4.BorderSizePixel = 0
     border4.ZIndex = 11
     border4.Parent = MainFrame
     
-    -- Анимация рамки
-    RunService.Heartbeat:Connect(function()
-        local time = tick() % 2
-        local alpha = math.abs(math.sin(time * math.pi))
-        border1.BackgroundTransparency = alpha * 0.5
-        border2.BackgroundTransparency = alpha * 0.5
-        border3.BackgroundTransparency = alpha * 0.5
-        border4.BackgroundTransparency = alpha * 0.5
-    end)
-    
-    -- Title Bar с хакерским стилем
+    -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 40)
-    titleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    titleBar.BackgroundTransparency = 0.3
+    titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Темно-серый
+    titleBar.BackgroundTransparency = 0.1
     titleBar.BorderSizePixel = 0
     titleBar.Parent = MainFrame
     titleBar.ZIndex = 10
-    
-    -- Сканирующая линия
-    local scanLine = Instance.new("Frame")
-    scanLine.Name = "ScanLine"
-    scanLine.Size = UDim2.new(1, 0, 0, 1)
-    scanLine.BackgroundColor3 = CurrentColor
-    scanLine.BorderSizePixel = 0
-    scanLine.ZIndex = 12
-    scanLine.Parent = titleBar
-    
-    RunService.Heartbeat:Connect(function()
-        local time = tick() % 2
-        scanLine.Position = UDim2.new(0, 0, 0, math.sin(time * math.pi * 2) * 20 + 20)
-    end)
     
     HideButton = Instance.new("TextButton")
     HideButton.Name = "HideButton"
     HideButton.Size = UDim2.new(0, 30, 0, 30)
     HideButton.Position = UDim2.new(0, 5, 0, 5)
-    HideButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    HideButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     HideButton.BackgroundTransparency = 0.3
     HideButton.BorderSizePixel = 0
     HideButton.Text = "◀"
-    HideButton.TextColor3 = CurrentColor
+    HideButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     HideButton.TextSize = 18
     HideButton.Font = Enum.Font.Code
     HideButton.Parent = titleBar
@@ -242,34 +208,23 @@ function Library:CreateLib(title, theme)
     titleText.Size = UDim2.new(1, -105, 1, 0)
     titleText.Position = UDim2.new(0, 40, 0, 0)
     titleText.BackgroundTransparency = 1
-    titleText.Text = "> " .. (title or "CODE B HACK MODULE") .. " <"
-    titleText.TextColor3 = CurrentColor
+    titleText.Text = "$ " .. (title or "CODE B HACK MODULE") .. " $"
+    titleText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     titleText.TextSize = 16
     titleText.Font = Enum.Font.Code
     titleText.TextXAlignment = Enum.TextXAlignment.Left
     titleText.ZIndex = 11
     titleText.Parent = titleBar
     
-    -- Анимированный текст заголовка
-    local titleGlitch = 0
-    RunService.Heartbeat:Connect(function()
-        titleGlitch = titleGlitch + 1
-        if titleGlitch % 30 == 0 then
-            titleText.Text = "> " .. (title or "CODE B HACK MODULE") .. " <"
-        elseif titleGlitch % 30 == 15 then
-            titleText.Text = "> " .. string.upper(title or "CODE B HACK MODULE") .. " <"
-        end
-    end)
-    
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
     closeBtn.Size = UDim2.new(0, 40, 0, 30)
     closeBtn.Position = UDim2.new(1, -45, 0, 5)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(20, 0, 0)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     closeBtn.BackgroundTransparency = 0.3
     closeBtn.BorderSizePixel = 0
     closeBtn.Text = "X"
-    closeBtn.TextColor3 = Color3.fromRGB(255, 50, 50)
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     closeBtn.TextSize = 20
     closeBtn.Font = Enum.Font.Code
     closeBtn.ZIndex = 11
@@ -287,7 +242,7 @@ function Library:CreateLib(title, theme)
     ResizeButton.Position = UDim2.new(1, -25, 1, -25)
     ResizeButton.BackgroundTransparency = 1
     ResizeButton.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    ResizeButton.ImageColor3 = CurrentColor
+    ResizeButton.ImageColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     ResizeButton.ZIndex = 11
     ResizeButton.Parent = MainFrame
     
@@ -295,26 +250,19 @@ function Library:CreateLib(title, theme)
     arrowLabel.Size = UDim2.new(1, 0, 1, 0)
     arrowLabel.BackgroundTransparency = 1
     arrowLabel.Text = "↘"
-    arrowLabel.TextColor3 = CurrentColor
+    arrowLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     arrowLabel.TextSize = 18
     arrowLabel.Font = Enum.Font.Code
     arrowLabel.ZIndex = 12
     arrowLabel.Parent = ResizeButton
     
-    ColumnsFrame = Instance.new("Frame")
-    ColumnsFrame.Name = "ColumnsFrame"
-    ColumnsFrame.Size = UDim2.new(1, -20, 1, -155)
-    ColumnsFrame.Position = UDim2.new(0, 10, 0, 50)
-    ColumnsFrame.BackgroundTransparency = 1
-    ColumnsFrame.ZIndex = 10
-    ColumnsFrame.Parent = MainFrame
-    
+    -- Контейнер для вкладок (исправлено положение)
     local tabBar = Instance.new("Frame")
     tabBar.Name = "TabBar"
     tabBar.Size = UDim2.new(1, -20, 0, 35)
-    tabBar.Position = UDim2.new(0, 10, 0, 5)
-    tabBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    tabBar.BackgroundTransparency = 0.3
+    tabBar.Position = UDim2.new(0, 10, 0, 45) -- Сдвинуто вниз, чтобы не перекрывать заголовок
+    tabBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    tabBar.BackgroundTransparency = 0.1
     tabBar.BorderSizePixel = 0
     tabBar.ZIndex = 10
     tabBar.Parent = MainFrame
@@ -328,13 +276,21 @@ function Library:CreateLib(title, theme)
     tabContainer.ZIndex = 11
     tabContainer.Parent = tabBar
     
-    -- Bottom info panel с хакерским стилем
+    ColumnsFrame = Instance.new("Frame")
+    ColumnsFrame.Name = "ColumnsFrame"
+    ColumnsFrame.Size = UDim2.new(1, -20, 1, -160)
+    ColumnsFrame.Position = UDim2.new(0, 10, 0, 85) -- Сдвинуто ниже табов
+    ColumnsFrame.BackgroundTransparency = 1
+    ColumnsFrame.ZIndex = 10
+    ColumnsFrame.Parent = MainFrame
+    
+    -- Bottom info panel
     local bottomFrame = Instance.new("Frame")
     bottomFrame.Name = "BottomFrame"
     bottomFrame.Size = UDim2.new(1, -20, 0, 90)
     bottomFrame.Position = UDim2.new(0, 10, 1, -100)
-    bottomFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    bottomFrame.BackgroundTransparency = 0.3
+    bottomFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    bottomFrame.BackgroundTransparency = 0.1
     bottomFrame.BorderSizePixel = 0
     bottomFrame.ZIndex = 10
     bottomFrame.Parent = MainFrame
@@ -343,20 +299,20 @@ function Library:CreateLib(title, theme)
     infoPanel.Name = "InfoPanel"
     infoPanel.Size = UDim2.new(1, -20, 1, -10)
     infoPanel.Position = UDim2.new(0, 10, 0, 5)
-    infoPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    infoPanel.BackgroundTransparency = 0.2
+    infoPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    infoPanel.BackgroundTransparency = 0.1
     infoPanel.BorderSizePixel = 0
     infoPanel.ZIndex = 11
     infoPanel.Parent = bottomFrame
     
-    -- Создаем информационные лейблы
+    -- Создаем информационные лейблы (белый текст)
     local fpsLabel = Instance.new("TextLabel")
     fpsLabel.Name = "FPSLabel"
     fpsLabel.Size = UDim2.new(0.5, -5, 0, 25)
     fpsLabel.Position = UDim2.new(0, 5, 0, 5)
     fpsLabel.BackgroundTransparency = 1
-    fpsLabel.Text = "> FPS: 60 <"
-    fpsLabel.TextColor3 = CurrentColor
+    fpsLabel.Text = "$ FPS: 60 $"
+    fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     fpsLabel.TextSize = 14
     fpsLabel.Font = Enum.Font.Code
     fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -368,8 +324,8 @@ function Library:CreateLib(title, theme)
     pingLabel.Size = UDim2.new(0.5, -5, 0, 25)
     pingLabel.Position = UDim2.new(0.5, 0, 0, 5)
     pingLabel.BackgroundTransparency = 1
-    pingLabel.Text = "> PING: 0ms <"
-    pingLabel.TextColor3 = CurrentColor
+    pingLabel.Text = "$ PING: 0ms $"
+    pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     pingLabel.TextSize = 14
     pingLabel.Font = Enum.Font.Code
     pingLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -381,8 +337,8 @@ function Library:CreateLib(title, theme)
     playerLabel.Size = UDim2.new(0.5, -5, 0, 25)
     playerLabel.Position = UDim2.new(0, 5, 0, 30)
     playerLabel.BackgroundTransparency = 1
-    playerLabel.Text = "> PLAYERS: 0 <"
-    playerLabel.TextColor3 = CurrentColor
+    playerLabel.Text = "$ PLAYERS: 0 $"
+    playerLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     playerLabel.TextSize = 14
     playerLabel.Font = Enum.Font.Code
     playerLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -394,10 +350,9 @@ function Library:CreateLib(title, theme)
     timeLabel.Size = UDim2.new(0.5, -5, 0, 25)
     timeLabel.Position = UDim2.new(0.5, 0, 0, 30)
     timeLabel.BackgroundTransparency = 1
-    timeLabel.Text = "> TIME: 00:00 <"
-    timeLabel.TextColor3 = CurrentColor
+    timeLabel.Text = "$ TIME: 00:00 $"
+    timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     timeLabel.TextSize = 14
-    font = Enum.Font.Code
     timeLabel.Font = Enum.Font.Code
     timeLabel.TextXAlignment = Enum.TextXAlignment.Left
     timeLabel.ZIndex = 12
@@ -408,8 +363,8 @@ function Library:CreateLib(title, theme)
     memLabel.Size = UDim2.new(1, -10, 0, 25)
     memLabel.Position = UDim2.new(0, 5, 0, 55)
     memLabel.BackgroundTransparency = 1
-    memLabel.Text = "> MEMORY: 0 MB <"
-    memLabel.TextColor3 = CurrentColor
+    memLabel.Text = "$ MEMORY: 0 MB $"
+    memLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     memLabel.TextSize = 14
     memLabel.Font = Enum.Font.Code
     memLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -432,32 +387,27 @@ function Library:CreateLib(title, theme)
             lastTime = currentTime
         end
         
-        -- FPS с эффектом
-        fpsLabel.Text = "> FPS: " .. math.floor(fps) .. " <"
-        if fps < 30 then
-            fpsLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-        else
-            fpsLabel.TextColor3 = CurrentColor
-        end
+        -- FPS
+        fpsLabel.Text = "$ FPS: " .. math.floor(fps) .. " $"
         
         -- Ping
         local ping = 0
         if Players.LocalPlayer then
             ping = math.floor(Players.LocalPlayer:GetNetworkPing() * 1000)
         end
-        pingLabel.Text = "> PING: " .. ping .. "ms <"
+        pingLabel.Text = "$ PING: " .. ping .. "ms $"
         
         -- Players count
         local playerCount = #Players:GetPlayers()
-        playerLabel.Text = "> PLAYERS: " .. playerCount .. " <"
+        playerLabel.Text = "$ PLAYERS: " .. playerCount .. " $"
         
         -- Time
         local currentTime = os.date("*t")
-        timeLabel.Text = string.format("> TIME: %02d:%02d <", currentTime.hour, currentTime.min)
+        timeLabel.Text = string.format("$ TIME: %02d:%02d $", currentTime.hour, currentTime.min)
         
         -- Memory
         local mem = math.floor(collectgarbage("count") / 1024)
-        memLabel.Text = "> MEMORY: " .. mem .. " MB <"
+        memLabel.Text = "$ MEMORY: " .. mem .. " MB $"
     end)
     
     -- Dragging
@@ -469,8 +419,6 @@ function Library:CreateLib(title, theme)
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
-            -- Эффект при начале перетаскивания
-            TweenService:Create(MainFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
         end
     end)
     
@@ -489,7 +437,6 @@ function Library:CreateLib(title, theme)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
-            TweenService:Create(MainFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play()
         end
     end)
     
@@ -520,16 +467,16 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- Hide/show functionality с улучшенной анимацией
+    -- Hide/show functionality
     HideButton.MouseButton1Click:Connect(function()
         IsVisible = not IsVisible
-        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         
         if IsVisible then
             HideButton.Text = "◀"
             local goal = {
                 Size = UDim2.new(0, 500, 0, 650),
-                BackgroundTransparency = 0.2
+                BackgroundTransparency = 0.1
             }
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
             TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 1}):Play()
@@ -541,16 +488,15 @@ function Library:CreateLib(title, theme)
             matrixRain.BackgroundTransparency = 0
         else
             HideButton.Text = "▶"
-            -- Глитч эффект при скрытии
             glitchEffect.Visible = true
-            TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
+            TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
             
             local goal = {
                 Size = UDim2.new(0, 200, 0, 40),
                 BackgroundTransparency = 0.5
             }
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
-            TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.5}):Play()
+            TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.8}):Play()
             ColumnsFrame.Visible = false
             tabBar.Visible = false
             bottomFrame.Visible = false
@@ -567,11 +513,11 @@ function Library:CreateLib(title, theme)
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
             IsVisible = not IsVisible
-            local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
             
             if IsVisible then
                 HideButton.Text = "◀"
-                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 500, 0, 650), BackgroundTransparency = 0.2}):Play()
+                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 500, 0, 650), BackgroundTransparency = 0.1}):Play()
                 TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0}):Play()
                 ColumnsFrame.Visible = true
                 tabBar.Visible = true
@@ -580,9 +526,9 @@ function Library:CreateLib(title, theme)
             else
                 HideButton.Text = "▶"
                 glitchEffect.Visible = true
-                TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
+                TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
                 TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 200, 0, 40), BackgroundTransparency = 0.5}):Play()
-                TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.5}):Play()
+                TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.8}):Play()
                 ColumnsFrame.Visible = false
                 tabBar.Visible = false
                 bottomFrame.Visible = false
@@ -638,7 +584,7 @@ function Library:NewTab(name)
     tabFrame.BorderSizePixel = 0
     tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     tabFrame.ScrollBarThickness = 8
-    tabFrame.ScrollBarImageColor3 = CurrentColor
+    tabFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 150, 150) -- Серый
     tabFrame.ZIndex = 12
     tabFrame.Parent = tabContainer
     tabFrame.Visible = false
@@ -662,8 +608,8 @@ function Library:NewTab(name)
         tabButton.Size = UDim2.new(0, 100, 1, -2)
         tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
         tabButton.BackgroundTransparency = 1
-        tabButton.Text = "> " .. name .. " <"
-        tabButton.TextColor3 = (#TabButtons == 0) and CurrentColor or Color3.fromRGB(100, 100, 100)
+        tabButton.Text = "$ " .. name .. " $"
+        tabButton.TextColor3 = (#TabButtons == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
         tabButton.TextSize = 14
         tabButton.Font = Enum.Font.Code
         tabButton.BorderSizePixel = 0
@@ -678,26 +624,18 @@ function Library:NewTab(name)
             local line = Instance.new("Frame")
             line.Size = UDim2.new(1, 0, 0, 2)
             line.Position = UDim2.new(0, 0, 1, -2)
-            line.BackgroundColor3 = CurrentColor
+            line.BackgroundColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый
             line.BorderSizePixel = 0
             line.ZIndex = 13
             line.Parent = tabButton
-            
-            -- Анимация линии
-            RunService.Heartbeat:Connect(function()
-                if tabFrame.Visible then
-                    local time = tick() % 1
-                    line.BackgroundTransparency = math.abs(math.sin(time * math.pi))
-                end
-            end)
         end
         
         -- Обработчик клика по вкладке
         tabButton.MouseButton1Click:Connect(function()
             -- Глитч эффект при смене вкладки
             glitchEffect.Visible = true
-            glitchEffect.Text = "> ACCESSING " .. string.upper(name) .. " <"
-            TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 0.7}):Play()
+            glitchEffect.Text = "$ ACCESSING " .. string.upper(name) .. " $"
+            TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 0.8}):Play()
             
             -- Скрываем все вкладки
             for _, child in pairs(tabContainer:GetChildren()) do
@@ -711,7 +649,7 @@ function Library:NewTab(name)
             
             -- Обновляем цвета кнопок
             for _, btn in ipairs(TabButtons) do
-                btn.TextColor3 = Color3.fromRGB(100, 100, 100)
+                btn.TextColor3 = Color3.fromRGB(150, 150, 150)
                 -- Удаляем старую линию
                 for _, child in pairs(btn:GetChildren()) do
                     if child:IsA("Frame") then
@@ -720,13 +658,13 @@ function Library:NewTab(name)
                 end
             end
             
-            tabButton.TextColor3 = CurrentColor
+            tabButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             
             -- Добавляем линию под выбранной вкладкой
             local line = Instance.new("Frame")
             line.Size = UDim2.new(1, 0, 0, 2)
             line.Position = UDim2.new(0, 0, 1, -2)
-            line.BackgroundColor3 = CurrentColor
+            line.BackgroundColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый
             line.BorderSizePixel = 0
             line.ZIndex = 13
             line.Parent = tabButton
@@ -768,13 +706,13 @@ function Library:NewTab(name)
             end
         end
         
-        -- Заголовок секции с хакерским стилем
+        -- Заголовок секции
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
         sectionTitle.Position = UDim2.new(0, 0, 0, currentY)
         sectionTitle.BackgroundTransparency = 1
-        sectionTitle.Text = "> // " .. sectionName .. " <"
-        sectionTitle.TextColor3 = CurrentColor
+        sectionTitle.Text = "$ // " .. sectionName .. " $"
+        sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
         sectionTitle.TextSize = 16
         sectionTitle.Font = Enum.Font.Code
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -783,9 +721,9 @@ function Library:NewTab(name)
         
         -- Линия под заголовком
         local sectionLine = Instance.new("Frame")
-        sectionLine.Size = UDim2.new(1, 0, 0, 2)
+        sectionLine.Size = UDim2.new(1, 0, 0, 1)
         sectionLine.Position = UDim2.new(0, 0, 0, currentY + 25)
-        sectionLine.BackgroundColor3 = CurrentColor
+        sectionLine.BackgroundColor3 = Color3.fromRGB(150, 150, 150) -- Серый
         sectionLine.BackgroundTransparency = 0.5
         sectionLine.BorderSizePixel = 0
         sectionLine.ZIndex = 13
@@ -806,26 +744,26 @@ function Library:NewTab(name)
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
             buttonFrame.Position = UDim2.new(0, 0, 0, elementY)
-            buttonFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            buttonFrame.BackgroundTransparency = 0.3
+            buttonFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Темно-серый
+            buttonFrame.BackgroundTransparency = 0.1
             buttonFrame.BorderSizePixel = 0
             buttonFrame.ZIndex = 14
             buttonFrame.Parent = container
             
-            -- Градиентная рамка
+            -- Серая рамка
             local border = Instance.new("Frame")
             border.Size = UDim2.new(1, 0, 0, 1)
             border.Position = UDim2.new(0, 0, 0, 0)
-            border.BackgroundColor3 = CurrentColor
-            border.BackgroundTransparency = 0.7
+            border.BackgroundColor3 = Color3.fromRGB(100, 100, 100) -- Серый
+            border.BackgroundTransparency = 0.5
             border.BorderSizePixel = 0
             border.ZIndex = 15
             border.Parent = buttonFrame
             
             local border2 = Instance.new("Frame")
             border2.Size = UDim2.new(0, 1, 1, 0)
-            border2.BackgroundColor3 = CurrentColor
-            border2.BackgroundTransparency = 0.7
+            border2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border2.BackgroundTransparency = 0.5
             border2.BorderSizePixel = 0
             border2.ZIndex = 15
             border2.Parent = buttonFrame
@@ -833,8 +771,8 @@ function Library:NewTab(name)
             local border3 = Instance.new("Frame")
             border3.Size = UDim2.new(1, 0, 0, 1)
             border3.Position = UDim2.new(0, 0, 1, -1)
-            border3.BackgroundColor3 = CurrentColor
-            border3.BackgroundTransparency = 0.7
+            border3.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border3.BackgroundTransparency = 0.5
             border3.BorderSizePixel = 0
             border3.ZIndex = 15
             border3.Parent = buttonFrame
@@ -842,8 +780,8 @@ function Library:NewTab(name)
             local border4 = Instance.new("Frame")
             border4.Size = UDim2.new(0, 1, 1, 0)
             border4.Position = UDim2.new(1, -1, 0, 0)
-            border4.BackgroundColor3 = CurrentColor
-            border4.BackgroundTransparency = 0.7
+            border4.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border4.BackgroundTransparency = 0.5
             border4.BorderSizePixel = 0
             border4.ZIndex = 15
             border4.Parent = buttonFrame
@@ -852,8 +790,8 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "> " .. buttonName
-            nameLabel.TextColor3 = CurrentColor
+            nameLabel.Text = "$ " .. buttonName
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -865,7 +803,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 30)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "// " .. (description or "")
-            descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+            descLabel.TextColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -881,26 +819,16 @@ function Library:NewTab(name)
             
             button.MouseEnter:Connect(function()
                 TweenService:Create(buttonFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
-                for _, child in pairs(buttonFrame:GetChildren()) do
-                    if child:IsA("Frame") and child.BorderSizePixel == 0 then
-                        TweenService:Create(child, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
-                    end
-                end
             end)
             
             button.MouseLeave:Connect(function()
-                TweenService:Create(buttonFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0.3}):Play()
-                for _, child in pairs(buttonFrame:GetChildren()) do
-                    if child:IsA("Frame") and child.BorderSizePixel == 0 then
-                        TweenService:Create(child, TweenInfo.new(0.2), {BackgroundTransparency = 0.7}):Play()
-                    end
-                end
+                TweenService:Create(buttonFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0.1}):Play()
             end)
             
             button.MouseButton1Click:Connect(function()
                 TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0}):Play()
                 task.wait(0.1)
-                TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0.3}):Play()
+                TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0.1}):Play()
                 
                 if callback then
                     local success, err = pcall(callback)
@@ -920,8 +848,8 @@ function Library:NewTab(name)
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 50)
             toggleFrame.Position = UDim2.new(0, 0, 0, elementY)
-            toggleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            toggleFrame.BackgroundTransparency = 0.3
+            toggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            toggleFrame.BackgroundTransparency = 0.1
             toggleFrame.BorderSizePixel = 0
             toggleFrame.ZIndex = 14
             toggleFrame.Parent = container
@@ -930,16 +858,16 @@ function Library:NewTab(name)
             local border = Instance.new("Frame")
             border.Size = UDim2.new(1, 0, 0, 1)
             border.Position = UDim2.new(0, 0, 0, 0)
-            border.BackgroundColor3 = CurrentColor
-            border.BackgroundTransparency = 0.7
+            border.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border.BackgroundTransparency = 0.5
             border.BorderSizePixel = 0
             border.ZIndex = 15
             border.Parent = toggleFrame
             
             local border2 = Instance.new("Frame")
             border2.Size = UDim2.new(0, 1, 1, 0)
-            border2.BackgroundColor3 = CurrentColor
-            border2.BackgroundTransparency = 0.7
+            border2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border2.BackgroundTransparency = 0.5
             border2.BorderSizePixel = 0
             border2.ZIndex = 15
             border2.Parent = toggleFrame
@@ -947,8 +875,8 @@ function Library:NewTab(name)
             local border3 = Instance.new("Frame")
             border3.Size = UDim2.new(1, 0, 0, 1)
             border3.Position = UDim2.new(0, 0, 1, -1)
-            border3.BackgroundColor3 = CurrentColor
-            border3.BackgroundTransparency = 0.7
+            border3.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border3.BackgroundTransparency = 0.5
             border3.BorderSizePixel = 0
             border3.ZIndex = 15
             border3.Parent = toggleFrame
@@ -956,8 +884,8 @@ function Library:NewTab(name)
             local border4 = Instance.new("Frame")
             border4.Size = UDim2.new(0, 1, 1, 0)
             border4.Position = UDim2.new(1, -1, 0, 0)
-            border4.BackgroundColor3 = CurrentColor
-            border4.BackgroundTransparency = 0.7
+            border4.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border4.BackgroundTransparency = 0.5
             border4.BorderSizePixel = 0
             border4.ZIndex = 15
             border4.Parent = toggleFrame
@@ -966,8 +894,8 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -80, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "> " .. toggleName
-            nameLabel.TextColor3 = CurrentColor
+            nameLabel.Text = "$ " .. toggleName
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -979,7 +907,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "// " .. (description or "")
-            descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+            descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -989,7 +917,7 @@ function Library:NewTab(name)
             local toggleBg = Instance.new("Frame")
             toggleBg.Size = UDim2.new(0, 50, 0, 24)
             toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-            toggleBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            toggleBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             toggleBg.BorderSizePixel = 0
             toggleBg.ZIndex = 15
             toggleBg.Parent = toggleFrame
@@ -1007,7 +935,7 @@ function Library:NewTab(name)
             local function updateToggle()
                 if toggleState then
                     TweenService:Create(toggleIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-                        BackgroundColor3 = CurrentColor,
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255), -- Белый
                         Position = UDim2.new(1, -22, 0.5, -8)
                     }):Play()
                 else
@@ -1045,8 +973,8 @@ function Library:NewTab(name)
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 70)
             sliderFrame.Position = UDim2.new(0, 0, 0, elementY)
-            sliderFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            sliderFrame.BackgroundTransparency = 0.3
+            sliderFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            sliderFrame.BackgroundTransparency = 0.1
             sliderFrame.BorderSizePixel = 0
             sliderFrame.ZIndex = 14
             sliderFrame.Parent = container
@@ -1055,16 +983,16 @@ function Library:NewTab(name)
             local border = Instance.new("Frame")
             border.Size = UDim2.new(1, 0, 0, 1)
             border.Position = UDim2.new(0, 0, 0, 0)
-            border.BackgroundColor3 = CurrentColor
-            border.BackgroundTransparency = 0.7
+            border.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border.BackgroundTransparency = 0.5
             border.BorderSizePixel = 0
             border.ZIndex = 15
             border.Parent = sliderFrame
             
             local border2 = Instance.new("Frame")
             border2.Size = UDim2.new(0, 1, 1, 0)
-            border2.BackgroundColor3 = CurrentColor
-            border2.BackgroundTransparency = 0.7
+            border2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border2.BackgroundTransparency = 0.5
             border2.BorderSizePixel = 0
             border2.ZIndex = 15
             border2.Parent = sliderFrame
@@ -1072,8 +1000,8 @@ function Library:NewTab(name)
             local border3 = Instance.new("Frame")
             border3.Size = UDim2.new(1, 0, 0, 1)
             border3.Position = UDim2.new(0, 0, 1, -1)
-            border3.BackgroundColor3 = CurrentColor
-            border3.BackgroundTransparency = 0.7
+            border3.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border3.BackgroundTransparency = 0.5
             border3.BorderSizePixel = 0
             border3.ZIndex = 15
             border3.Parent = sliderFrame
@@ -1081,8 +1009,8 @@ function Library:NewTab(name)
             local border4 = Instance.new("Frame")
             border4.Size = UDim2.new(0, 1, 1, 0)
             border4.Position = UDim2.new(1, -1, 0, 0)
-            border4.BackgroundColor3 = CurrentColor
-            border4.BackgroundTransparency = 0.7
+            border4.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border4.BackgroundTransparency = 0.5
             border4.BorderSizePixel = 0
             border4.ZIndex = 15
             border4.Parent = sliderFrame
@@ -1091,8 +1019,8 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "> " .. sliderName
-            nameLabel.TextColor3 = CurrentColor
+            nameLabel.Text = "$ " .. sliderName
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1104,7 +1032,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "// " .. (description or "")
-            descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+            descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1114,10 +1042,10 @@ function Library:NewTab(name)
             local valueLabel = Instance.new("TextLabel")
             valueLabel.Size = UDim2.new(0, 50, 0, 20)
             valueLabel.Position = UDim2.new(1, -60, 0, 28)
-            valueLabel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+            valueLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             valueLabel.BorderSizePixel = 0
             valueLabel.Text = "[" .. tostring(default or min) .. "]"
-            valueLabel.TextColor3 = CurrentColor
+            valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             valueLabel.TextSize = 12
             valueLabel.Font = Enum.Font.Code
             valueLabel.ZIndex = 16
@@ -1126,14 +1054,14 @@ function Library:NewTab(name)
             local sliderBg = Instance.new("Frame")
             sliderBg.Size = UDim2.new(1, -80, 0, 10)
             sliderBg.Position = UDim2.new(0, 10, 0, 50)
-            sliderBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             sliderBg.BorderSizePixel = 0
             sliderBg.ZIndex = 15
             sliderBg.Parent = sliderFrame
             
             local sliderFill = Instance.new("Frame")
             sliderFill.Size = UDim2.new(0, 0, 1, 0)
-            sliderFill.BackgroundColor3 = CurrentColor
+            sliderFill.BackgroundColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый
             sliderFill.BorderSizePixel = 0
             sliderFill.ZIndex = 16
             sliderFill.Parent = sliderBg
@@ -1202,8 +1130,8 @@ function Library:NewTab(name)
             local dropdownFrame = Instance.new("Frame")
             dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
             dropdownFrame.Position = UDim2.new(0, 0, 0, elementY)
-            dropdownFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            dropdownFrame.BackgroundTransparency = 0.3
+            dropdownFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            dropdownFrame.BackgroundTransparency = 0.1
             dropdownFrame.BorderSizePixel = 0
             dropdownFrame.Parent = container
             dropdownFrame.ClipsDescendants = true
@@ -1213,16 +1141,16 @@ function Library:NewTab(name)
             local border = Instance.new("Frame")
             border.Size = UDim2.new(1, 0, 0, 1)
             border.Position = UDim2.new(0, 0, 0, 0)
-            border.BackgroundColor3 = CurrentColor
-            border.BackgroundTransparency = 0.7
+            border.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border.BackgroundTransparency = 0.5
             border.BorderSizePixel = 0
             border.ZIndex = 15
             border.Parent = dropdownFrame
             
             local border2 = Instance.new("Frame")
             border2.Size = UDim2.new(0, 1, 1, 0)
-            border2.BackgroundColor3 = CurrentColor
-            border2.BackgroundTransparency = 0.7
+            border2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border2.BackgroundTransparency = 0.5
             border2.BorderSizePixel = 0
             border2.ZIndex = 15
             border2.Parent = dropdownFrame
@@ -1230,8 +1158,8 @@ function Library:NewTab(name)
             local border3 = Instance.new("Frame")
             border3.Size = UDim2.new(1, 0, 0, 1)
             border3.Position = UDim2.new(0, 0, 1, -1)
-            border3.BackgroundColor3 = CurrentColor
-            border3.BackgroundTransparency = 0.7
+            border3.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border3.BackgroundTransparency = 0.5
             border3.BorderSizePixel = 0
             border3.ZIndex = 15
             border3.Parent = dropdownFrame
@@ -1239,8 +1167,8 @@ function Library:NewTab(name)
             local border4 = Instance.new("Frame")
             border4.Size = UDim2.new(0, 1, 1, 0)
             border4.Position = UDim2.new(1, -1, 0, 0)
-            border4.BackgroundColor3 = CurrentColor
-            border4.BackgroundTransparency = 0.7
+            border4.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border4.BackgroundTransparency = 0.5
             border4.BorderSizePixel = 0
             border4.ZIndex = 15
             border4.Parent = dropdownFrame
@@ -1257,8 +1185,8 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -50, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "> " .. dropdownName
-            nameLabel.TextColor3 = CurrentColor
+            nameLabel.Text = "$ " .. dropdownName
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1270,7 +1198,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "// " .. (description or "")
-            descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+            descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1282,7 +1210,7 @@ function Library:NewTab(name)
             arrowLabel.Position = UDim2.new(1, -40, 0, 10)
             arrowLabel.BackgroundTransparency = 1
             arrowLabel.Text = "▼"
-            arrowLabel.TextColor3 = CurrentColor
+            arrowLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             arrowLabel.TextSize = 20
             arrowLabel.Font = Enum.Font.Code
             arrowLabel.ZIndex = 16
@@ -1355,8 +1283,8 @@ function Library:NewTab(name)
                 local buttonFrame = Instance.new("Frame")
                 buttonFrame.Size = UDim2.new(1, -20, 0, 40)
                 buttonFrame.Position = UDim2.new(0, 10, 0, btnY)
-                buttonFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-                buttonFrame.BackgroundTransparency = 0.3
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                buttonFrame.BackgroundTransparency = 0.1
                 buttonFrame.BorderSizePixel = 0
                 buttonFrame.ZIndex = 16
                 buttonFrame.Parent = dropdownContent
@@ -1365,8 +1293,8 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -20, 1, 0)
                 nameLabel.Position = UDim2.new(0, 10, 0, 0)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = ">> " .. buttonName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                nameLabel.Text = "$ " .. buttonName
+                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1385,13 +1313,13 @@ function Library:NewTab(name)
                 end)
                 
                 button.MouseLeave:Connect(function()
-                    TweenService:Create(buttonFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0.3}):Play()
+                    TweenService:Create(buttonFrame, TweenInfo.new(0.2), {BackgroundTransparency = 0.1}):Play()
                 end)
                 
                 button.MouseButton1Click:Connect(function()
                     TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0}):Play()
                     task.wait(0.1)
-                    TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0.3}):Play()
+                    TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundTransparency = 0.1}):Play()
                     
                     if buttonCallback then
                         local success, err = pcall(buttonCallback)
@@ -1413,8 +1341,8 @@ function Library:NewTab(name)
                 local toggleFrame = Instance.new("Frame")
                 toggleFrame.Size = UDim2.new(1, -20, 0, 50)
                 toggleFrame.Position = UDim2.new(0, 10, 0, btnY)
-                toggleFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-                toggleFrame.BackgroundTransparency = 0.3
+                toggleFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                toggleFrame.BackgroundTransparency = 0.1
                 toggleFrame.BorderSizePixel = 0
                 toggleFrame.ZIndex = 16
                 toggleFrame.Parent = dropdownContent
@@ -1423,8 +1351,8 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -80, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = ">> " .. toggleName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                nameLabel.Text = "$ " .. toggleName
+                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1436,7 +1364,7 @@ function Library:NewTab(name)
                 descLabel.Position = UDim2.new(0, 10, 0, 25)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Text = "// " .. (description or "")
-                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+                descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
                 descLabel.TextSize = 12
                 descLabel.Font = Enum.Font.Code
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1446,7 +1374,7 @@ function Library:NewTab(name)
                 local toggleBg = Instance.new("Frame")
                 toggleBg.Size = UDim2.new(0, 50, 0, 24)
                 toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-                toggleBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                toggleBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                 toggleBg.BorderSizePixel = 0
                 toggleBg.ZIndex = 17
                 toggleBg.Parent = toggleFrame
@@ -1464,7 +1392,7 @@ function Library:NewTab(name)
                 local function updateToggle()
                     if toggleState then
                         TweenService:Create(toggleIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-                            BackgroundColor3 = CurrentColor,
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255), -- Белый
                             Position = UDim2.new(1, -22, 0.5, -8)
                         }):Play()
                     else
@@ -1506,8 +1434,8 @@ function Library:NewTab(name)
                 local sliderFrame = Instance.new("Frame")
                 sliderFrame.Size = UDim2.new(1, -20, 0, 70)
                 sliderFrame.Position = UDim2.new(0, 10, 0, btnY)
-                sliderFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-                sliderFrame.BackgroundTransparency = 0.3
+                sliderFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                sliderFrame.BackgroundTransparency = 0.1
                 sliderFrame.BorderSizePixel = 0
                 sliderFrame.ZIndex = 16
                 sliderFrame.Parent = dropdownContent
@@ -1516,8 +1444,8 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -20, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = ">> " .. sliderName
-                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                nameLabel.Text = "$ " .. sliderName
+                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1529,7 +1457,7 @@ function Library:NewTab(name)
                 descLabel.Position = UDim2.new(0, 10, 0, 25)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Text = "// " .. (description or "")
-                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+                descLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
                 descLabel.TextSize = 12
                 descLabel.Font = Enum.Font.Code
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1539,10 +1467,10 @@ function Library:NewTab(name)
                 local valueLabel = Instance.new("TextLabel")
                 valueLabel.Size = UDim2.new(0, 50, 0, 20)
                 valueLabel.Position = UDim2.new(1, -60, 0, 28)
-                valueLabel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+                valueLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                 valueLabel.BorderSizePixel = 0
                 valueLabel.Text = "[" .. tostring(default or min) .. "]"
-                valueLabel.TextColor3 = CurrentColor
+                valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 valueLabel.TextSize = 12
                 valueLabel.Font = Enum.Font.Code
                 valueLabel.ZIndex = 17
@@ -1551,14 +1479,14 @@ function Library:NewTab(name)
                 local sliderBg = Instance.new("Frame")
                 sliderBg.Size = UDim2.new(1, -80, 0, 10)
                 sliderBg.Position = UDim2.new(0, 10, 0, 50)
-                sliderBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                 sliderBg.BorderSizePixel = 0
                 sliderBg.ZIndex = 17
                 sliderBg.Parent = sliderFrame
                 
                 local sliderFill = Instance.new("Frame")
                 sliderFill.Size = UDim2.new(0, 0, 1, 0)
-                sliderFill.BackgroundColor3 = CurrentColor
+                sliderFill.BackgroundColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый
                 sliderFill.BorderSizePixel = 0
                 sliderFill.ZIndex = 18
                 sliderFill.Parent = sliderBg
@@ -1635,8 +1563,8 @@ function Library:NewTab(name)
             local textFrame = Instance.new("Frame")
             textFrame.Size = UDim2.new(1, 0, 0, height)
             textFrame.Position = UDim2.new(0, 0, 0, elementY)
-            textFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            textFrame.BackgroundTransparency = 0.3
+            textFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            textFrame.BackgroundTransparency = 0.1
             textFrame.BorderSizePixel = 0
             textFrame.ZIndex = 14
             textFrame.Parent = container
@@ -1645,16 +1573,16 @@ function Library:NewTab(name)
             local border = Instance.new("Frame")
             border.Size = UDim2.new(1, 0, 0, 1)
             border.Position = UDim2.new(0, 0, 0, 0)
-            border.BackgroundColor3 = CurrentColor
-            border.BackgroundTransparency = 0.7
+            border.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border.BackgroundTransparency = 0.5
             border.BorderSizePixel = 0
             border.ZIndex = 15
             border.Parent = textFrame
             
             local border2 = Instance.new("Frame")
             border2.Size = UDim2.new(0, 1, 1, 0)
-            border2.BackgroundColor3 = CurrentColor
-            border2.BackgroundTransparency = 0.7
+            border2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border2.BackgroundTransparency = 0.5
             border2.BorderSizePixel = 0
             border2.ZIndex = 15
             border2.Parent = textFrame
@@ -1662,8 +1590,8 @@ function Library:NewTab(name)
             local border3 = Instance.new("Frame")
             border3.Size = UDim2.new(1, 0, 0, 1)
             border3.Position = UDim2.new(0, 0, 1, -1)
-            border3.BackgroundColor3 = CurrentColor
-            border3.BackgroundTransparency = 0.7
+            border3.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border3.BackgroundTransparency = 0.5
             border3.BorderSizePixel = 0
             border3.ZIndex = 15
             border3.Parent = textFrame
@@ -1671,8 +1599,8 @@ function Library:NewTab(name)
             local border4 = Instance.new("Frame")
             border4.Size = UDim2.new(0, 1, 1, 0)
             border4.Position = UDim2.new(1, -1, 0, 0)
-            border4.BackgroundColor3 = CurrentColor
-            border4.BackgroundTransparency = 0.7
+            border4.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            border4.BackgroundTransparency = 0.5
             border4.BorderSizePixel = 0
             border4.ZIndex = 15
             border4.Parent = textFrame
@@ -1682,7 +1610,7 @@ function Library:NewTab(name)
             textLabel.Position = UDim2.new(0, 10, 0, 10)
             textLabel.BackgroundTransparency = 1
             textLabel.Text = text or ""
-            textLabel.TextColor3 = CurrentColor
+            textLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             textLabel.TextSize = 14
             textLabel.Font = Enum.Font.Code
             textLabel.TextWrapped = true
