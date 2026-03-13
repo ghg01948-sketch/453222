@@ -29,84 +29,14 @@ local IsVisible = true
 local HideButton = nil
 
 local Tabs = {}
-local MatrixRain = {}
 local GlitchEffects = {}
 
--- Создаем матричный дождь (серый/черный)
-local function CreateMatrixRain()
-    local matrixHolder = Instance.new("Frame")
-    matrixHolder.Name = "MatrixRain"
-    matrixHolder.Size = UDim2.new(1, 0, 1, 0)
-    matrixHolder.BackgroundTransparency = 1
-    matrixHolder.ZIndex = 0
-    matrixHolder.Parent = GUI
-    
-    local columns = {}
-    local columnCount = 30
-    
-    for i = 1, columnCount do
-        local column = Instance.new("TextLabel")
-        column.Name = "MatrixColumn_" .. i
-        column.Size = UDim2.new(0, 25, 1, 0)
-        column.Position = UDim2.new((i-1) * (1/columnCount), 0, 0, 0)
-        column.BackgroundTransparency = 1
-        column.Text = ""
-        column.TextColor3 = Color3.fromRGB(100, 100, 100) -- Серый
-        column.TextSize = 20
-        column.Font = Enum.Font.Code
-        column.TextXAlignment = Enum.TextXAlignment.Center
-        column.TextYAlignment = Enum.TextYAlignment.Top
-        column.ZIndex = 0
-        column.TextTransparency = 0.8
-        column.Parent = matrixHolder
-        columns[i] = column
-    end
-    
-    local chars = {"0","1","0","1","0","1","0","1","0","1","0","1","0","1"}
-    local speeds = {}
-    
-    for i = 1, columnCount do
-        speeds[i] = {
-            y = math.random(-100, 0),
-            speed = math.random(1, 3),
-            chars = {}
-        }
-        for j = 1, 30 do
-            speeds[i].chars[j] = chars[math.random(#chars)]
-        end
-    end
-    
-    RunService.RenderStepped:Connect(function(dt)
-        for i = 1, columnCount do
-            local column = columns[i]
-            if column then
-                speeds[i].y = speeds[i].y + speeds[i].speed
-                if speeds[i].y > column.AbsoluteSize.Y + 100 then
-                    speeds[i].y = -100
-                end
-                
-                local text = ""
-                for j = 1, 30 do
-                    if math.random() < 0.01 then
-                        speeds[i].chars[j] = chars[math.random(#chars)]
-                    end
-                    text = text .. speeds[i].chars[j] .. "\n"
-                end
-                column.Text = text
-                column.Position = UDim2.new((i-1) * (1/columnCount), 0, 0, speeds[i].y)
-            end
-        end
-    end)
-    
-    return matrixHolder
-end
-
--- Эффект глитча (серый)
+-- Эффект глитча (только для анимации, без белого фона)
 local function CreateGlitchEffect()
     local glitch = Instance.new("Frame")
     glitch.Name = "GlitchEffect"
     glitch.Size = UDim2.new(1, 0, 1, 0)
-    glitch.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    glitch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     glitch.BackgroundTransparency = 0.95
     glitch.ZIndex = 999
     glitch.Visible = false
@@ -127,9 +57,6 @@ local function CreateGlitchEffect()
 end
 
 function Library:CreateLib(title, theme)
-    -- Создаем матричный дождь
-    local matrixRain = CreateMatrixRain()
-    
     -- Создаем эффект глитча
     local glitchEffect = CreateGlitchEffect()
     
@@ -208,7 +135,7 @@ function Library:CreateLib(title, theme)
     titleText.Size = UDim2.new(1, -105, 1, 0)
     titleText.Position = UDim2.new(0, 40, 0, 0)
     titleText.BackgroundTransparency = 1
-    titleText.Text = "$ " .. (title or "CODE B HACK MODULE") .. " $"
+    titleText.Text = "> " .. (title or "CODE B HACK MODULE") .. " <"
     titleText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     titleText.TextSize = 16
     titleText.Font = Enum.Font.Code
@@ -230,9 +157,6 @@ function Library:CreateLib(title, theme)
     closeBtn.ZIndex = 11
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() 
-        glitchEffect.Visible = true
-        TweenService:Create(glitchEffect, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-        task.wait(0.5)
         GUI:Destroy() 
     end)
     
@@ -311,7 +235,7 @@ function Library:CreateLib(title, theme)
     fpsLabel.Size = UDim2.new(0.5, -5, 0, 25)
     fpsLabel.Position = UDim2.new(0, 5, 0, 5)
     fpsLabel.BackgroundTransparency = 1
-    fpsLabel.Text = "$ FPS: 60 $"
+    fpsLabel.Text = "FPS: 60"
     fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     fpsLabel.TextSize = 14
     fpsLabel.Font = Enum.Font.Code
@@ -324,7 +248,7 @@ function Library:CreateLib(title, theme)
     pingLabel.Size = UDim2.new(0.5, -5, 0, 25)
     pingLabel.Position = UDim2.new(0.5, 0, 0, 5)
     pingLabel.BackgroundTransparency = 1
-    pingLabel.Text = "$ PING: 0ms $"
+    pingLabel.Text = "PING: 0ms"
     pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     pingLabel.TextSize = 14
     pingLabel.Font = Enum.Font.Code
@@ -337,7 +261,7 @@ function Library:CreateLib(title, theme)
     playerLabel.Size = UDim2.new(0.5, -5, 0, 25)
     playerLabel.Position = UDim2.new(0, 5, 0, 30)
     playerLabel.BackgroundTransparency = 1
-    playerLabel.Text = "$ PLAYERS: 0 $"
+    playerLabel.Text = "PLAYERS: 0"
     playerLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     playerLabel.TextSize = 14
     playerLabel.Font = Enum.Font.Code
@@ -350,7 +274,7 @@ function Library:CreateLib(title, theme)
     timeLabel.Size = UDim2.new(0.5, -5, 0, 25)
     timeLabel.Position = UDim2.new(0.5, 0, 0, 30)
     timeLabel.BackgroundTransparency = 1
-    timeLabel.Text = "$ TIME: 00:00 $"
+    timeLabel.Text = "TIME: 00:00"
     timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     timeLabel.TextSize = 14
     timeLabel.Font = Enum.Font.Code
@@ -363,7 +287,7 @@ function Library:CreateLib(title, theme)
     memLabel.Size = UDim2.new(1, -10, 0, 25)
     memLabel.Position = UDim2.new(0, 5, 0, 55)
     memLabel.BackgroundTransparency = 1
-    memLabel.Text = "$ MEMORY: 0 MB $"
+    memLabel.Text = "MEMORY: 0 MB"
     memLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
     memLabel.TextSize = 14
     memLabel.Font = Enum.Font.Code
@@ -388,26 +312,26 @@ function Library:CreateLib(title, theme)
         end
         
         -- FPS
-        fpsLabel.Text = "$ FPS: " .. math.floor(fps) .. " $"
+        fpsLabel.Text = "FPS: " .. math.floor(fps)
         
         -- Ping
         local ping = 0
         if Players.LocalPlayer then
             ping = math.floor(Players.LocalPlayer:GetNetworkPing() * 1000)
         end
-        pingLabel.Text = "$ PING: " .. ping .. "ms $"
+        pingLabel.Text = "PING: " .. ping .. "ms"
         
         -- Players count
         local playerCount = #Players:GetPlayers()
-        playerLabel.Text = "$ PLAYERS: " .. playerCount .. " $"
+        playerLabel.Text = "PLAYERS: " .. playerCount
         
         -- Time
         local currentTime = os.date("*t")
-        timeLabel.Text = string.format("$ TIME: %02d:%02d $", currentTime.hour, currentTime.min)
+        timeLabel.Text = string.format("TIME: %02d:%02d", currentTime.hour, currentTime.min)
         
         -- Memory
         local mem = math.floor(collectgarbage("count") / 1024)
-        memLabel.Text = "$ MEMORY: " .. mem .. " MB $"
+        memLabel.Text = "MEMORY: " .. mem .. " MB"
     end)
     
     -- Dragging
@@ -467,7 +391,7 @@ function Library:CreateLib(title, theme)
         end
     end)
     
-    -- Hide/show functionality
+    -- Hide/show functionality (без белого накладывания)
     HideButton.MouseButton1Click:Connect(function()
         IsVisible = not IsVisible
         local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -479,33 +403,22 @@ function Library:CreateLib(title, theme)
                 BackgroundTransparency = 0.1
             }
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
-            TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 1}):Play()
             task.wait(0.1)
             ColumnsFrame.Visible = true
             tabBar.Visible = true
             bottomFrame.Visible = true
             ResizeButton.Visible = true
-            matrixRain.BackgroundTransparency = 0
         else
             HideButton.Text = "▶"
-            glitchEffect.Visible = true
-            TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
-            
             local goal = {
                 Size = UDim2.new(0, 200, 0, 40),
                 BackgroundTransparency = 0.5
             }
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
-            TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.8}):Play()
             ColumnsFrame.Visible = false
             tabBar.Visible = false
             bottomFrame.Visible = false
             ResizeButton.Visible = false
-            
-            task.wait(0.3)
-            TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-            task.wait(0.2)
-            glitchEffect.Visible = false
         end
     end)
     
@@ -518,26 +431,17 @@ function Library:CreateLib(title, theme)
             if IsVisible then
                 HideButton.Text = "◀"
                 TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 500, 0, 650), BackgroundTransparency = 0.1}):Play()
-                TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0}):Play()
                 ColumnsFrame.Visible = true
                 tabBar.Visible = true
                 bottomFrame.Visible = true
                 ResizeButton.Visible = true
             else
                 HideButton.Text = "▶"
-                glitchEffect.Visible = true
-                TweenService:Create(glitchEffect, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
                 TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 200, 0, 40), BackgroundTransparency = 0.5}):Play()
-                TweenService:Create(matrixRain, tweenInfo, {BackgroundTransparency = 0.8}):Play()
                 ColumnsFrame.Visible = false
                 tabBar.Visible = false
                 bottomFrame.Visible = false
                 ResizeButton.Visible = false
-                
-                task.wait(0.3)
-                TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-                task.wait(0.2)
-                glitchEffect.Visible = false
             end
         end
     end)
@@ -608,7 +512,7 @@ function Library:NewTab(name)
         tabButton.Size = UDim2.new(0, 100, 1, -2)
         tabButton.Position = UDim2.new(0, (#TabButtons * 105 + 5), 0, 1)
         tabButton.BackgroundTransparency = 1
-        tabButton.Text = "$ " .. name .. " $"
+        tabButton.Text = "> " .. name .. " <"
         tabButton.TextColor3 = (#TabButtons == 0) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
         tabButton.TextSize = 14
         tabButton.Font = Enum.Font.Code
@@ -632,11 +536,6 @@ function Library:NewTab(name)
         
         -- Обработчик клика по вкладке
         tabButton.MouseButton1Click:Connect(function()
-            -- Глитч эффект при смене вкладки
-            glitchEffect.Visible = true
-            glitchEffect.Text = "$ ACCESSING " .. string.upper(name) .. " $"
-            TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 0.8}):Play()
-            
             -- Скрываем все вкладки
             for _, child in pairs(tabContainer:GetChildren()) do
                 if child:IsA("ScrollingFrame") then
@@ -668,11 +567,6 @@ function Library:NewTab(name)
             line.BorderSizePixel = 0
             line.ZIndex = 13
             line.Parent = tabButton
-            
-            task.wait(0.2)
-            TweenService:Create(glitchEffect, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-            task.wait(0.2)
-            glitchEffect.Visible = false
         end)
         
         -- Обновляем размеры кнопок
@@ -711,7 +605,7 @@ function Library:NewTab(name)
         sectionTitle.Size = UDim2.new(1, 0, 0, 30)
         sectionTitle.Position = UDim2.new(0, 0, 0, currentY)
         sectionTitle.BackgroundTransparency = 1
-        sectionTitle.Text = "$ // " .. sectionName .. " $"
+        sectionTitle.Text = "// " .. sectionName
         sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
         sectionTitle.TextSize = 16
         sectionTitle.Font = Enum.Font.Code
@@ -790,7 +684,7 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "$ " .. buttonName
+            nameLabel.Text = buttonName
             nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
@@ -894,7 +788,7 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -80, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "$ " .. toggleName
+            nameLabel.Text = toggleName
             nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
@@ -1019,7 +913,7 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "$ " .. sliderName
+            nameLabel.Text = sliderName
             nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
@@ -1185,7 +1079,7 @@ function Library:NewTab(name)
             nameLabel.Size = UDim2.new(1, -50, 0, 25)
             nameLabel.Position = UDim2.new(0, 10, 0, 5)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "$ " .. dropdownName
+            nameLabel.Text = dropdownName
             nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
             nameLabel.TextSize = 16
             nameLabel.Font = Enum.Font.Code
@@ -1293,7 +1187,7 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -20, 1, 0)
                 nameLabel.Position = UDim2.new(0, 10, 0, 0)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "$ " .. buttonName
+                nameLabel.Text = buttonName
                 nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
@@ -1351,7 +1245,7 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -80, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "$ " .. toggleName
+                nameLabel.Text = toggleName
                 nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
@@ -1444,7 +1338,7 @@ function Library:NewTab(name)
                 nameLabel.Size = UDim2.new(1, -20, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "$ " .. sliderName
+                nameLabel.Text = sliderName
                 nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
