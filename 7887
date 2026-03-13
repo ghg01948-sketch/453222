@@ -8,7 +8,8 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
 local GUI = Instance.new("ScreenGui")
 GUI.Name = "CodeBHackLibrary"
@@ -28,52 +29,31 @@ local Tabs = {}
 function Library:CreateLib(title, theme)
     MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 500, 0, 600)
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
-    MainFrame.BorderSizePixel = 0
+    MainFrame.Size = UDim2.new(0, 500, 0, 650)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -325)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    MainFrame.BorderSizePixel = 2
+    MainFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
     MainFrame.Parent = GUI
     MainFrame.Active = true
-    
-    -- Shadow effect
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 20, 1, 20)
-    shadow.Position = UDim2.new(0, -10, 0, -10)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.ImageTransparency = 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 10, 10)
-    shadow.Parent = MainFrame
-    shadow.ZIndex = -1
     
     -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 45)
-    titleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-    titleBar.BorderSizePixel = 0
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    titleBar.BorderSizePixel = 1
+    titleBar.BorderColor3 = Color3.fromRGB(60, 60, 60)
     titleBar.Parent = MainFrame
-    
-    -- Gradient line under title
-    local gradientLine = Instance.new("Frame")
-    gradientLine.Name = "GradientLine"
-    gradientLine.Size = UDim2.new(1, 0, 0, 2)
-    gradientLine.Position = UDim2.new(0, 0, 1, -2)
-    gradientLine.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    gradientLine.BorderSizePixel = 0
-    gradientLine.Parent = titleBar
     
     HideButton = Instance.new("TextButton")
     HideButton.Name = "HideButton"
     HideButton.Size = UDim2.new(0, 30, 0, 30)
-    HideButton.Position = UDim2.new(0, 10, 0, 7)
+    HideButton.Position = UDim2.new(0, 5, 0, 5)
     HideButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    HideButton.BorderSizePixel = 0
+    HideButton.BorderColor3 = Color3.fromRGB(80, 80, 80)
     HideButton.Text = "◀"
-    HideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    HideButton.TextColor3 = Color3.fromRGB(180, 180, 180)
     HideButton.TextSize = 18
     HideButton.Font = Enum.Font.Code
     HideButton.Parent = titleBar
@@ -81,10 +61,10 @@ function Library:CreateLib(title, theme)
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
     titleText.Size = UDim2.new(1, -105, 1, 0)
-    titleText.Position = UDim2.new(0, 45, 0, 0)
+    titleText.Position = UDim2.new(0, 40, 0, 0)
     titleText.BackgroundTransparency = 1
     titleText.Text = title or "CODE B HACK MODULE"
-    titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleText.TextColor3 = Color3.fromRGB(220, 220, 220)
     titleText.TextSize = 16
     titleText.Font = Enum.Font.Code
     titleText.TextXAlignment = Enum.TextXAlignment.Left
@@ -92,10 +72,10 @@ function Library:CreateLib(title, theme)
     
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseButton"
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -40, 0, 7)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    closeBtn.BorderSizePixel = 0
+    closeBtn.Size = UDim2.new(0, 40, 0, 30)
+    closeBtn.Position = UDim2.new(1, -45, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    closeBtn.BorderColor3 = Color3.fromRGB(120, 120, 120)
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.TextSize = 20
@@ -103,71 +83,40 @@ function Library:CreateLib(title, theme)
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
     
-    -- Corner accents
-    local cornerTL = Instance.new("Frame")
-    cornerTL.Name = "CornerTL"
-    cornerTL.Size = UDim2.new(0, 10, 0, 10)
-    cornerTL.Position = UDim2.new(0, 0, 0, 0)
-    cornerTL.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    cornerTL.BorderSizePixel = 0
-    cornerTL.Parent = MainFrame
-    
-    local cornerTR = Instance.new("Frame")
-    cornerTR.Name = "CornerTR"
-    cornerTR.Size = UDim2.new(0, 10, 0, 10)
-    cornerTR.Position = UDim2.new(1, -10, 0, 0)
-    cornerTR.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    cornerTR.BorderSizePixel = 0
-    cornerTR.Parent = MainFrame
-    
-    local cornerBL = Instance.new("Frame")
-    cornerBL.Name = "CornerBL"
-    cornerBL.Size = UDim2.new(0, 10, 0, 10)
-    cornerBL.Position = UDim2.new(0, 0, 1, -10)
-    cornerBL.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    cornerBL.BorderSizePixel = 0
-    cornerBL.Parent = MainFrame
-    
-    local cornerBR = Instance.new("Frame")
-    cornerBR.Name = "CornerBR"
-    cornerBR.Size = UDim2.new(0, 10, 0, 10)
-    cornerBR.Position = UDim2.new(1, -10, 1, -10)
-    cornerBR.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    cornerBR.BorderSizePixel = 0
-    cornerBR.Parent = MainFrame
-    
     local ResizeButton = Instance.new("ImageButton")
     ResizeButton.Name = "ResizeButton"
     ResizeButton.Size = UDim2.new(0, 20, 0, 20)
     ResizeButton.Position = UDim2.new(1, -25, 1, -25)
     ResizeButton.BackgroundTransparency = 1
     ResizeButton.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    ResizeButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    ResizeButton.ImageColor3 = Color3.fromRGB(150, 150, 150)
     ResizeButton.Parent = MainFrame
     
     local arrowLabel = Instance.new("TextLabel")
     arrowLabel.Size = UDim2.new(1, 0, 1, 0)
     arrowLabel.BackgroundTransparency = 1
     arrowLabel.Text = "↘"
-    arrowLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    arrowLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
     arrowLabel.TextSize = 18
     arrowLabel.Font = Enum.Font.Code
     arrowLabel.Parent = ResizeButton
     
     ColumnsFrame = Instance.new("Frame")
     ColumnsFrame.Name = "ColumnsFrame"
-    ColumnsFrame.Size = UDim2.new(1, -20, 1, -105)
+    ColumnsFrame.Size = UDim2.new(1, -20, 1, -155)
     ColumnsFrame.Position = UDim2.new(0, 10, 0, 50)
     ColumnsFrame.BackgroundTransparency = 1
     ColumnsFrame.Parent = MainFrame
     
     local tabBar = Instance.new("Frame")
     tabBar.Name = "TabBar"
-    tabBar.Size = UDim2.new(1, -20, 0, 40)
+    tabBar.Size = UDim2.new(1, -20, 0, 35)
     tabBar.Position = UDim2.new(0, 10, 0, 5)
-    tabBar.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
-    tabBar.BorderSizePixel = 0
+    tabBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    tabBar.BorderSizePixel = 1
+    tabBar.BorderColor3 = Color3.fromRGB(50, 50, 50)
     tabBar.Parent = MainFrame
+    tabBar.ClipsDescendants = true
     
     local tabContainer = Instance.new("Frame")
     tabContainer.Name = "TabContainer"
@@ -176,90 +125,123 @@ function Library:CreateLib(title, theme)
     tabContainer.BackgroundTransparency = 1
     tabContainer.Parent = tabBar
     
-    -- Bottom panel with FPS and other metrics
-    local bottomPanel = Instance.new("Frame")
-    bottomPanel.Name = "BottomPanel"
-    bottomPanel.Size = UDim2.new(1, -20, 0, 45)
-    bottomPanel.Position = UDim2.new(0, 10, 1, -55)
-    bottomPanel.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
-    bottomPanel.BorderSizePixel = 0
-    bottomPanel.Parent = MainFrame
+    -- Bottom info panel
+    local bottomFrame = Instance.new("Frame")
+    bottomFrame.Name = "BottomFrame"
+    bottomFrame.Size = UDim2.new(1, -20, 0, 90)
+    bottomFrame.Position = UDim2.new(0, 10, 1, -100)
+    bottomFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    bottomFrame.BorderSizePixel = 2
+    bottomFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
+    bottomFrame.Parent = MainFrame
     
-    -- Bottom panel line
-    local bottomLine = Instance.new("Frame")
-    bottomLine.Name = "BottomLine"
-    bottomLine.Size = UDim2.new(1, -20, 0, 1)
-    bottomLine.Position = UDim2.new(0, 10, 0, 0)
-    bottomLine.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    bottomLine.BorderSizePixel = 0
-    bottomLine.Parent = bottomPanel
+    local infoPanel = Instance.new("Frame")
+    infoPanel.Name = "InfoPanel"
+    infoPanel.Size = UDim2.new(1, -20, 1, -10)
+    infoPanel.Position = UDim2.new(0, 10, 0, 5)
+    infoPanel.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+    infoPanel.BorderSizePixel = 1
+    infoPanel.BorderColor3 = Color3.fromRGB(40, 40, 40)
+    infoPanel.Parent = bottomFrame
     
-    -- FPS Indicator
     local fpsLabel = Instance.new("TextLabel")
     fpsLabel.Name = "FPSLabel"
-    fpsLabel.Size = UDim2.new(0, 100, 1, 0)
-    fpsLabel.Position = UDim2.new(0, 15, 0, 0)
+    fpsLabel.Size = UDim2.new(0.5, -5, 0, 25)
+    fpsLabel.Position = UDim2.new(0, 5, 0, 5)
     fpsLabel.BackgroundTransparency = 1
     fpsLabel.Text = "FPS: 60"
     fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    fpsLabel.TextSize = 13
+    fpsLabel.TextSize = 14
     fpsLabel.Font = Enum.Font.Code
     fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
-    fpsLabel.Parent = bottomPanel
+    fpsLabel.Parent = infoPanel
     
-    -- Ping Indicator
     local pingLabel = Instance.new("TextLabel")
     pingLabel.Name = "PingLabel"
-    pingLabel.Size = UDim2.new(0, 100, 1, 0)
-    pingLabel.Position = UDim2.new(0, 120, 0, 0)
+    pingLabel.Size = UDim2.new(0.5, -5, 0, 25)
+    pingLabel.Position = UDim2.new(0.5, 0, 0, 5)
     pingLabel.BackgroundTransparency = 1
     pingLabel.Text = "Ping: 0ms"
     pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pingLabel.TextSize = 13
+    pingLabel.TextSize = 14
     pingLabel.Font = Enum.Font.Code
     pingLabel.TextXAlignment = Enum.TextXAlignment.Left
-    pingLabel.Parent = bottomPanel
+    pingLabel.Parent = infoPanel
     
-    -- Memory Indicator
-    local memoryLabel = Instance.new("TextLabel")
-    memoryLabel.Name = "MemoryLabel"
-    memoryLabel.Size = UDim2.new(0, 120, 1, 0)
-    memoryLabel.Position = UDim2.new(0, 225, 0, 0)
-    memoryLabel.BackgroundTransparency = 1
-    memoryLabel.Text = "Memory: 0MB"
-    memoryLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    memoryLabel.TextSize = 13
-    memoryLabel.Font = Enum.Font.Code
-    memoryLabel.TextXAlignment = Enum.TextXAlignment.Left
-    memoryLabel.Parent = bottomPanel
+    local playerLabel = Instance.new("TextLabel")
+    playerLabel.Name = "PlayerLabel"
+    playerLabel.Size = UDim2.new(0.5, -5, 0, 25)
+    playerLabel.Position = UDim2.new(0, 5, 0, 30)
+    playerLabel.BackgroundTransparency = 1
+    playerLabel.Text = "Players: 0"
+    playerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    playerLabel.TextSize = 14
+    playerLabel.Font = Enum.Font.Code
+    playerLabel.TextXAlignment = Enum.TextXAlignment.Left
+    playerLabel.Parent = infoPanel
     
-    -- Time Indicator
     local timeLabel = Instance.new("TextLabel")
     timeLabel.Name = "TimeLabel"
-    timeLabel.Size = UDim2.new(0, 120, 1, 0)
-    timeLabel.Position = UDim2.new(1, -135, 0, 0)
+    timeLabel.Size = UDim2.new(0.5, -5, 0, 25)
+    timeLabel.Position = UDim2.new(0.5, 0, 0, 30)
     timeLabel.BackgroundTransparency = 1
-    timeLabel.Text = os.date("%H:%M:%S")
+    timeLabel.Text = "Time: 00:00"
     timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    timeLabel.TextSize = 13
+    timeLabel.TextSize = 14
+    font = Enum.Font.Code
     timeLabel.Font = Enum.Font.Code
-    timeLabel.TextXAlignment = Enum.TextXAlignment.Right
-    timeLabel.Parent = bottomPanel
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    timeLabel.Parent = infoPanel
     
-    -- Update metrics
-    spawn(function()
-        while GUI.Parent do
-            local fps = math.floor(1 / RunService.RenderStepped:Wait())
-            fpsLabel.Text = "FPS: " .. fps
-            
-            local ping = math.floor(Stats:FindFirstChild("Network"):FindFirstChild("ServerStatsItem"):GetValue() * 1000)
-            pingLabel.Text = "Ping: " .. ping .. "ms"
-            
-            local memory = math.floor(gcinfo() / 1024)
-            memoryLabel.Text = "Memory: " .. memory .. "MB"
-            
-            timeLabel.Text = os.date("%H:%M:%S")
+    local memLabel = Instance.new("TextLabel")
+    memLabel.Name = "MemLabel"
+    memLabel.Size = UDim2.new(1, -10, 0, 25)
+    memLabel.Position = UDim2.new(0, 5, 0, 55)
+    memLabel.BackgroundTransparency = 1
+    memLabel.Text = "Memory: 0 MB"
+    memLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    memLabel.TextSize = 14
+    memLabel.Font = Enum.Font.Code
+    memLabel.TextXAlignment = Enum.TextXAlignment.Left
+    memLabel.Parent = infoPanel
+    
+    -- Update stats
+    local lastTime = tick()
+    local frameCount = 0
+    local fps = 60
+    
+    RunService.RenderStepped:Connect(function()
+        frameCount = frameCount + 1
+        local currentTime = tick()
+        local delta = currentTime - lastTime
+        
+        if delta >= 1 then
+            fps = frameCount
+            frameCount = 0
+            lastTime = currentTime
         end
+        
+        -- FPS
+        fpsLabel.Text = "FPS: " .. math.floor(fps)
+        
+        -- Ping
+        local ping = 0
+        if Players.LocalPlayer then
+            ping = math.floor(Players.LocalPlayer:GetNetworkPing() * 1000)
+        end
+        pingLabel.Text = "Ping: " .. ping .. "ms"
+        
+        -- Players count
+        local playerCount = #Players:GetPlayers()
+        playerLabel.Text = "Players: " .. playerCount
+        
+        -- Time
+        local currentTime = os.date("*t")
+        timeLabel.Text = string.format("Time: %02d:%02d", currentTime.hour, currentTime.min)
+        
+        -- Memory (approximate)
+        local mem = math.floor(collectgarbage("count") / 1024)
+        memLabel.Text = "Memory: " .. mem .. " MB"
     end)
     
     -- Dragging
@@ -308,7 +290,7 @@ function Library:CreateLib(title, theme)
         if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - resizeStart
             local newWidth = math.max(300, startSize.X.Offset + delta.X)
-            local newHeight = math.max(400, startSize.Y.Offset + delta.Y)
+            local newHeight = math.max(450, startSize.Y.Offset + delta.Y)
             MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
@@ -326,19 +308,19 @@ function Library:CreateLib(title, theme)
         
         if IsVisible then
             HideButton.Text = "◀"
-            local goal = {Size = UDim2.new(0, 500, 0, 600)}
+            local goal = {Size = UDim2.new(0, 500, 0, 650)}
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
             ColumnsFrame.Visible = true
             tabBar.Visible = true
-            bottomPanel.Visible = true
+            bottomFrame.Visible = true
             ResizeButton.Visible = true
         else
             HideButton.Text = "▶"
-            local goal = {Size = UDim2.new(0, 200, 0, 45)}
+            local goal = {Size = UDim2.new(0, 200, 0, 40)}
             TweenService:Create(MainFrame, tweenInfo, goal):Play()
             ColumnsFrame.Visible = false
             tabBar.Visible = false
-            bottomPanel.Visible = false
+            bottomFrame.Visible = false
             ResizeButton.Visible = false
         end
     end)
@@ -351,17 +333,17 @@ function Library:CreateLib(title, theme)
             
             if IsVisible then
                 HideButton.Text = "◀"
-                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 500, 0, 600)}):Play()
+                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 500, 0, 650)}):Play()
                 ColumnsFrame.Visible = true
                 tabBar.Visible = true
-                bottomPanel.Visible = true
+                bottomFrame.Visible = true
                 ResizeButton.Visible = true
             else
                 HideButton.Text = "▶"
-                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 200, 0, 45)}):Play()
+                TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 200, 0, 40)}):Play()
                 ColumnsFrame.Visible = false
                 tabBar.Visible = false
-                bottomPanel.Visible = false
+                bottomFrame.Visible = false
                 ResizeButton.Visible = false
             end
         end
@@ -407,8 +389,8 @@ function Library:NewTab(name)
     tabFrame.BackgroundTransparency = 1
     tabFrame.BorderSizePixel = 0
     tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    tabFrame.ScrollBarThickness = 6
-    tabFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    tabFrame.ScrollBarThickness = 8
+    tabFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
     tabFrame.Parent = tabContainer
     tabFrame.Visible = false
     
@@ -521,7 +503,7 @@ function Library:NewTab(name)
         sectionTitle.Position = UDim2.new(0, 0, 0, currentY)
         sectionTitle.BackgroundTransparency = 1
         sectionTitle.Text = "// " .. sectionName
-        sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        sectionTitle.TextColor3 = Color3.fromRGB(230, 230, 230)
         sectionTitle.TextSize = 16
         sectionTitle.Font = Enum.Font.Code
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -529,9 +511,9 @@ function Library:NewTab(name)
         
         -- Линия под заголовком
         local sectionLine = Instance.new("Frame")
-        sectionLine.Size = UDim2.new(1, 0, 0, 1)
+        sectionLine.Size = UDim2.new(1, 0, 0, 2)
         sectionLine.Position = UDim2.new(0, 0, 0, currentY + 25)
-        sectionLine.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        sectionLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
         sectionLine.BorderSizePixel = 0
         sectionLine.Parent = container
         
@@ -551,17 +533,10 @@ function Library:NewTab(name)
             local buttonFrame = Instance.new("Frame")
             buttonFrame.Size = UDim2.new(1, 0, 0, 60)
             buttonFrame.Position = UDim2.new(0, 0, 0, elementY)
-            buttonFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-            buttonFrame.BorderSizePixel = 0
+            buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            buttonFrame.BorderSizePixel = 2
+            buttonFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
             buttonFrame.Parent = container
-            
-            -- Hover effect
-            local hoverFrame = Instance.new("Frame")
-            hoverFrame.Size = UDim2.new(1, 0, 1, 0)
-            hoverFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            hoverFrame.BackgroundTransparency = 1
-            hoverFrame.BorderSizePixel = 0
-            hoverFrame.Parent = buttonFrame
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
@@ -579,7 +554,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 30)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = description or ""
-            descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -592,17 +567,17 @@ function Library:NewTab(name)
             button.Parent = buttonFrame
             
             button.MouseEnter:Connect(function()
-                hoverFrame.BackgroundTransparency = 0.95
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
             end)
             
             button.MouseLeave:Connect(function()
-                hoverFrame.BackgroundTransparency = 1
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             end)
             
             button.MouseButton1Click:Connect(function()
-                hoverFrame.BackgroundTransparency = 0.9
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
                 task.wait(0.1)
-                hoverFrame.BackgroundTransparency = 1
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
                 
                 if callback then
                     local success, err = pcall(callback)
@@ -622,16 +597,10 @@ function Library:NewTab(name)
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 50)
             toggleFrame.Position = UDim2.new(0, 0, 0, elementY)
-            toggleFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-            toggleFrame.BorderSizePixel = 0
+            toggleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            toggleFrame.BorderSizePixel = 2
+            toggleFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
             toggleFrame.Parent = container
-            
-            local hoverFrame = Instance.new("Frame")
-            hoverFrame.Size = UDim2.new(1, 0, 1, 0)
-            hoverFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            hoverFrame.BackgroundTransparency = 1
-            hoverFrame.BorderSizePixel = 0
-            hoverFrame.Parent = toggleFrame
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -80, 0, 25)
@@ -649,7 +618,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = description or ""
-            descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -658,8 +627,8 @@ function Library:NewTab(name)
             local toggleBg = Instance.new("Frame")
             toggleBg.Size = UDim2.new(0, 50, 0, 24)
             toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-            toggleBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-            toggleBg.BorderSizePixel = 1
+            toggleBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            toggleBg.BorderSizePixel = 2
             toggleBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
             toggleBg.Parent = toggleFrame
             
@@ -668,7 +637,7 @@ function Library:NewTab(name)
             toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
             toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
             toggleIndicator.BorderSizePixel = 1
-            toggleIndicator.BorderColor3 = Color3.fromRGB(120, 120, 120)
+            toggleIndicator.BorderColor3 = Color3.fromRGB(140, 140, 140)
             toggleIndicator.Parent = toggleBg
             
             local toggleState = false
@@ -688,14 +657,6 @@ function Library:NewTab(name)
             toggleButton.BackgroundTransparency = 1
             toggleButton.Text = ""
             toggleButton.Parent = toggleFrame
-            
-            toggleButton.MouseEnter:Connect(function()
-                hoverFrame.BackgroundTransparency = 0.95
-            end)
-            
-            toggleButton.MouseLeave:Connect(function()
-                hoverFrame.BackgroundTransparency = 1
-            end)
             
             toggleButton.MouseButton1Click:Connect(function()
                 toggleState = not toggleState
@@ -717,16 +678,10 @@ function Library:NewTab(name)
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 70)
             sliderFrame.Position = UDim2.new(0, 0, 0, elementY)
-            sliderFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-            sliderFrame.BorderSizePixel = 0
+            sliderFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            sliderFrame.BorderSizePixel = 2
+            sliderFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
             sliderFrame.Parent = container
-            
-            local hoverFrame = Instance.new("Frame")
-            hoverFrame.Size = UDim2.new(1, 0, 1, 0)
-            hoverFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            hoverFrame.BackgroundTransparency = 1
-            hoverFrame.BorderSizePixel = 0
-            hoverFrame.Parent = sliderFrame
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -20, 0, 25)
@@ -744,7 +699,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = description or ""
-            descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -753,7 +708,7 @@ function Library:NewTab(name)
             local valueLabel = Instance.new("TextLabel")
             valueLabel.Size = UDim2.new(0, 50, 0, 20)
             valueLabel.Position = UDim2.new(1, -60, 0, 28)
-            valueLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            valueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
             valueLabel.BorderSizePixel = 1
             valueLabel.BorderColor3 = Color3.fromRGB(80, 80, 80)
             valueLabel.Text = tostring(default or min)
@@ -765,7 +720,7 @@ function Library:NewTab(name)
             local sliderBg = Instance.new("Frame")
             sliderBg.Size = UDim2.new(1, -80, 0, 10)
             sliderBg.Position = UDim2.new(0, 10, 0, 50)
-            sliderBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            sliderBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             sliderBg.BorderSizePixel = 1
             sliderBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
             sliderBg.Parent = sliderFrame
@@ -839,8 +794,9 @@ function Library:NewTab(name)
             local dropdownFrame = Instance.new("Frame")
             dropdownFrame.Size = UDim2.new(1, 0, 0, 50)
             dropdownFrame.Position = UDim2.new(0, 0, 0, elementY)
-            dropdownFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-            dropdownFrame.BorderSizePixel = 0
+            dropdownFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            dropdownFrame.BorderSizePixel = 2
+            dropdownFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
             dropdownFrame.Parent = container
             dropdownFrame.ClipsDescendants = true
             
@@ -850,13 +806,6 @@ function Library:NewTab(name)
             dropdownButton.BackgroundTransparency = 1
             dropdownButton.Text = ""
             dropdownButton.Parent = dropdownFrame
-            
-            local hoverFrame = Instance.new("Frame")
-            hoverFrame.Size = UDim2.new(1, 0, 1, 0)
-            hoverFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            hoverFrame.BackgroundTransparency = 1
-            hoverFrame.BorderSizePixel = 0
-            hoverFrame.Parent = dropdownFrame
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -50, 0, 25)
@@ -874,7 +823,7 @@ function Library:NewTab(name)
             descLabel.Position = UDim2.new(0, 10, 0, 25)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = description or ""
-            descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+            descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
             descLabel.TextSize = 12
             descLabel.Font = Enum.Font.Code
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -885,7 +834,7 @@ function Library:NewTab(name)
             arrowLabel.Position = UDim2.new(1, -40, 0, 10)
             arrowLabel.BackgroundTransparency = 1
             arrowLabel.Text = "▼"
-            arrowLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            arrowLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
             arrowLabel.TextSize = 20
             arrowLabel.Font = Enum.Font.Code
             arrowLabel.Parent = dropdownFrame
@@ -922,7 +871,6 @@ function Library:NewTab(name)
                 end
                 
                 elementY = baseY + dropdownFrame.AbsoluteSize.Y
-                
                 tabFrame.CanvasSize = UDim2.new(0, 0, 0, currentY + 10)
             end
             
@@ -942,14 +890,6 @@ function Library:NewTab(name)
             
             dropdownButton.MouseButton1Click:Connect(toggleDropdown)
             
-            dropdownButton.MouseEnter:Connect(function()
-                hoverFrame.BackgroundTransparency = 0.95
-            end)
-            
-            dropdownButton.MouseLeave:Connect(function()
-                hoverFrame.BackgroundTransparency = 1
-            end)
-            
             local dropdownBaseY = elementY
             elementY = elementY + 50
             
@@ -961,23 +901,17 @@ function Library:NewTab(name)
                 local buttonFrame = Instance.new("Frame")
                 buttonFrame.Size = UDim2.new(1, -20, 0, 40)
                 buttonFrame.Position = UDim2.new(0, 10, 0, btnY)
-                buttonFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-                buttonFrame.BorderSizePixel = 0
+                buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                buttonFrame.BorderSizePixel = 1
+                buttonFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
                 buttonFrame.Parent = dropdownContent
-                
-                local buttonHover = Instance.new("Frame")
-                buttonHover.Size = UDim2.new(1, 0, 1, 0)
-                buttonHover.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                buttonHover.BackgroundTransparency = 1
-                buttonHover.BorderSizePixel = 0
-                buttonHover.Parent = buttonFrame
                 
                 local nameLabel = Instance.new("TextLabel")
                 nameLabel.Size = UDim2.new(1, -20, 1, 0)
                 nameLabel.Position = UDim2.new(0, 10, 0, 0)
                 nameLabel.BackgroundTransparency = 1
                 nameLabel.Text = buttonName
-                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -990,17 +924,17 @@ function Library:NewTab(name)
                 button.Parent = buttonFrame
                 
                 button.MouseEnter:Connect(function()
-                    buttonHover.BackgroundTransparency = 0.95
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 end)
                 
                 button.MouseLeave:Connect(function()
-                    buttonHover.BackgroundTransparency = 1
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
                 end)
                 
                 button.MouseButton1Click:Connect(function()
-                    buttonHover.BackgroundTransparency = 0.9
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                     task.wait(0.1)
-                    buttonHover.BackgroundTransparency = 1
+                    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
                     
                     if buttonCallback then
                         local success, err = pcall(buttonCallback)
@@ -1022,23 +956,17 @@ function Library:NewTab(name)
                 local toggleFrame = Instance.new("Frame")
                 toggleFrame.Size = UDim2.new(1, -20, 0, 50)
                 toggleFrame.Position = UDim2.new(0, 10, 0, btnY)
-                toggleFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-                toggleFrame.BorderSizePixel = 0
+                toggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                toggleFrame.BorderSizePixel = 1
+                toggleFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
                 toggleFrame.Parent = dropdownContent
-                
-                local toggleHover = Instance.new("Frame")
-                toggleHover.Size = UDim2.new(1, 0, 1, 0)
-                toggleHover.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                toggleHover.BackgroundTransparency = 1
-                toggleHover.BorderSizePixel = 0
-                toggleHover.Parent = toggleFrame
                 
                 local nameLabel = Instance.new("TextLabel")
                 nameLabel.Size = UDim2.new(1, -80, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
                 nameLabel.Text = toggleName
-                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1049,7 +977,7 @@ function Library:NewTab(name)
                 descLabel.Position = UDim2.new(0, 10, 0, 25)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Text = description or ""
-                descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
                 descLabel.TextSize = 12
                 descLabel.Font = Enum.Font.Code
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1058,8 +986,8 @@ function Library:NewTab(name)
                 local toggleBg = Instance.new("Frame")
                 toggleBg.Size = UDim2.new(0, 50, 0, 24)
                 toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-                toggleBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-                toggleBg.BorderSizePixel = 1
+                toggleBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                toggleBg.BorderSizePixel = 2
                 toggleBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
                 toggleBg.Parent = toggleFrame
                 
@@ -1068,7 +996,7 @@ function Library:NewTab(name)
                 toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
                 toggleIndicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
                 toggleIndicator.BorderSizePixel = 1
-                toggleIndicator.BorderColor3 = Color3.fromRGB(120, 120, 120)
+                toggleIndicator.BorderColor3 = Color3.fromRGB(140, 140, 140)
                 toggleIndicator.Parent = toggleBg
                 
                 local toggleState = false
@@ -1088,14 +1016,6 @@ function Library:NewTab(name)
                 toggleButton.BackgroundTransparency = 1
                 toggleButton.Text = ""
                 toggleButton.Parent = toggleFrame
-                
-                toggleButton.MouseEnter:Connect(function()
-                    toggleHover.BackgroundTransparency = 0.95
-                end)
-                
-                toggleButton.MouseLeave:Connect(function()
-                    toggleHover.BackgroundTransparency = 1
-                end)
                 
                 toggleButton.MouseButton1Click:Connect(function()
                     toggleState = not toggleState
@@ -1121,23 +1041,17 @@ function Library:NewTab(name)
                 local sliderFrame = Instance.new("Frame")
                 sliderFrame.Size = UDim2.new(1, -20, 0, 70)
                 sliderFrame.Position = UDim2.new(0, 10, 0, btnY)
-                sliderFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-                sliderFrame.BorderSizePixel = 0
+                sliderFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                sliderFrame.BorderSizePixel = 1
+                sliderFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
                 sliderFrame.Parent = dropdownContent
-                
-                local sliderHover = Instance.new("Frame")
-                sliderHover.Size = UDim2.new(1, 0, 1, 0)
-                sliderHover.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                sliderHover.BackgroundTransparency = 1
-                sliderHover.BorderSizePixel = 0
-                sliderHover.Parent = sliderFrame
                 
                 local nameLabel = Instance.new("TextLabel")
                 nameLabel.Size = UDim2.new(1, -20, 0, 25)
                 nameLabel.Position = UDim2.new(0, 10, 0, 5)
                 nameLabel.BackgroundTransparency = 1
                 nameLabel.Text = sliderName
-                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
                 nameLabel.TextSize = 14
                 nameLabel.Font = Enum.Font.Code
                 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1148,7 +1062,7 @@ function Library:NewTab(name)
                 descLabel.Position = UDim2.new(0, 10, 0, 25)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Text = description or ""
-                descLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+                descLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
                 descLabel.TextSize = 12
                 descLabel.Font = Enum.Font.Code
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1157,7 +1071,7 @@ function Library:NewTab(name)
                 local valueLabel = Instance.new("TextLabel")
                 valueLabel.Size = UDim2.new(0, 50, 0, 20)
                 valueLabel.Position = UDim2.new(1, -60, 0, 28)
-                valueLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                valueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                 valueLabel.BorderSizePixel = 1
                 valueLabel.BorderColor3 = Color3.fromRGB(80, 80, 80)
                 valueLabel.Text = tostring(default or min)
@@ -1169,7 +1083,7 @@ function Library:NewTab(name)
                 local sliderBg = Instance.new("Frame")
                 sliderBg.Size = UDim2.new(1, -80, 0, 10)
                 sliderBg.Position = UDim2.new(0, 10, 0, 50)
-                sliderBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                sliderBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 sliderBg.BorderSizePixel = 1
                 sliderBg.BorderColor3 = Color3.fromRGB(80, 80, 80)
                 sliderBg.Parent = sliderFrame
@@ -1251,8 +1165,9 @@ function Library:NewTab(name)
             local textFrame = Instance.new("Frame")
             textFrame.Size = UDim2.new(1, 0, 0, height)
             textFrame.Position = UDim2.new(0, 0, 0, elementY)
-            textFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-            textFrame.BorderSizePixel = 0
+            textFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            textFrame.BorderSizePixel = 2
+            textFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
             textFrame.Parent = container
             
             local textLabel = Instance.new("TextLabel")
@@ -1260,7 +1175,7 @@ function Library:NewTab(name)
             textLabel.Position = UDim2.new(0, 10, 0, 10)
             textLabel.BackgroundTransparency = 1
             textLabel.Text = text or ""
-            textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            textLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             textLabel.TextSize = 14
             textLabel.Font = Enum.Font.Code
             textLabel.TextWrapped = true
