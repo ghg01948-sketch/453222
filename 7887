@@ -16,8 +16,9 @@ GUI.DisplayOrder = 100
 local MainFrame = nil
 local ColumnsFrame = nil
 local TabButtons = {}
-local CurrentColor = Color3.fromRGB(255, 255, 255) -- Белый
-local InactiveColor = Color3.fromRGB(80, 80, 80) -- Серый для неактивных
+local CurrentColor = Color3.fromRGB(0, 255, 0) -- Зеленый неоновый
+local InactiveColor = Color3.fromRGB(40, 40, 40) -- Темно-серый
+local DarkBorderColor = Color3.fromRGB(10, 10, 10) -- Почти черный для обводки
 local IsVisible = true
 local HideButton = nil
 local Notifications = {}
@@ -25,8 +26,112 @@ local FPS = 0
 local Memory = 0
 local Resizing = false
 local ResizeDirection = nil
-local MinSize = Vector2.new(400, 350)
-local MaxSize = Vector2.new(1200, 800)
+local MinSize = Vector2.new(400, 300)
+local MatrixParticles = {}
+
+-- Создание матричных частиц
+local function createMatrixParticles(frame)
+    local particleContainer = Instance.new("Frame")
+    particleContainer.Name = "MatrixParticles"
+    particleContainer.Size = UDim2.new(1, 0, 1, 0)
+    particleContainer.BackgroundTransparency = 1
+    particleContainer.ZIndex = 10
+    particleContainer.Parent = frame
+    particleContainer.Visible = false
+    
+    local particles = {}
+    for i = 1, 50 do
+        local particle = Instance.new("TextLabel")
+        particle.Size = UDim2.new(0, 20, 0, 20)
+        particle.BackgroundTransparency = 1
+        particle.Text = math.random(0, 1)
+        particle.TextColor3 = CurrentColor
+        particle.TextSize = math.random(10, 20)
+        particle.Font = Enum.Font.Code
+        particle.Parent = particleContainer
+        particle.ZIndex = 10
+        particle.TextTransparency = 0.7
+        particle.Rotation = math.random(-10, 10)
+        table.insert(particles, particle)
+    end
+    return particleContainer, particles
+end
+
+-- Эффект распада на матричный код
+local function matrixDissolveEffect(frame, callback)
+    local container, particles = createMatrixParticles(frame)
+    container.Visible = true
+    
+    local frameSize = frame.AbsoluteSize
+    local framePos = frame.AbsolutePosition
+    
+    for i, particle in ipairs(particles) do
+        particle.Position = UDim2.new(
+            math.random(0, 100) / 100,
+            math.random(-10, 10),
+            math.random(0, 100) / 100,
+            math.random(-10, 10)
+        )
+        
+        -- Анимация разлета
+        local targetPos = UDim2.new(
+            math.random(-50, 150) / 100,
+            math.random(-50, 50),
+            math.random(-50, 150) / 100,
+            math.random(-50, 50)
+        )
+        
+        local tween = TweenService:Create(
+            particle,
+            TweenInfo.new(0.5, Enum.EasingStyle.Expo, Enum.EasingDirection.Out),
+            {Position = targetPos, TextTransparency = 1, Rotation = math.random(-180, 180)}
+        )
+        tween:Play()
+    end
+    
+    task.wait(0.5)
+    container:Destroy()
+    if callback then callback() end
+end
+
+-- Эффект сборки из матричного кода
+local function matrixAssembleEffect(frame, callback)
+    local container, particles = createMatrixParticles(frame)
+    container.Visible = true
+    
+    -- Размещаем частицы по всему экрану
+    for i, particle in ipairs(particles) do
+        particle.Position = UDim2.new(
+            math.random(-50, 150) / 100,
+            math.random(-100, 100),
+            math.random(-50, 150) / 100,
+            math.random(-100, 100)
+        )
+        particle.TextTransparency = 0
+    end
+    
+    -- Анимация сборки в центр
+    task.wait(0.1)
+    for i, particle in ipairs(particles) do
+        local targetPos = UDim2.new(
+            math.random(40, 60) / 100,
+            math.random(-20, 20),
+            math.random(40, 60) / 100,
+            math.random(-20, 20)
+        )
+        
+        local tween = TweenService:Create(
+            particle,
+            TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+            {Position = targetPos, TextTransparency = 0.3, Rotation = 0}
+        )
+        tween:Play()
+    end
+    
+    task.wait(0.3)
+    container:Destroy()
+    if callback then callback() end
+end
 
 -- Анимационные функции
 local function animate(object, properties, duration, easingStyle, easingDirection)
@@ -36,144 +141,32 @@ local function animate(object, properties, duration, easingStyle, easingDirectio
     return tween
 end
 
--- Функция для создания полосы изменения размера
-local function createResizeHandles(frame)
-    -- Правая сторона
-    local rightHandle = Instance.new("Frame")
-    rightHandle.Name = "RightResizeHandle"
-    rightHandle.Size = UDim2.new(0, 5, 1, -10)
-    rightHandle.Position = UDim2.new(1, -5, 0, 5)
-    rightHandle.BackgroundColor3 = CurrentColor
-    rightHandle.BackgroundTransparency = 0.8
-    rightHandle.BorderSizePixel = 0
-    rightHandle.Parent = frame
-    rightHandle.Visible = true
+-- Функция для создания неонового свечения
+local function createGlow(parent, color, size)
+    local glow = Instance.new("Frame")
+    glow.Name = "Glow"
+    glow.Size = UDim2.new(1, size or 4, 1, size or 4)
+    glow.Position = UDim2.new(0, -(size or 2), 0, -(size or 2))
+    glow.BackgroundColor3 = color or CurrentColor
+    glow.BackgroundTransparency = 0.8
+    glow.BorderSizePixel = 0
+    glow.ZIndex = parent.ZIndex - 1
+    glow.Parent = parent
     
-    -- Нижняя сторона
-    local bottomHandle = Instance.new("Frame")
-    bottomHandle.Name = "BottomResizeHandle"
-    bottomHandle.Size = UDim2.new(1, -10, 0, 5)
-    bottomHandle.Position = UDim2.new(0, 5, 1, -5)
-    bottomHandle.BackgroundColor3 = CurrentColor
-    bottomHandle.BackgroundTransparency = 0.8
-    bottomHandle.BorderSizePixel = 0
-    bottomHandle.Parent = frame
-    bottomHandle.Visible = true
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 8
+    blur.Parent = glow
     
-    -- Угол (правый нижний)
-    local cornerHandle = Instance.new("Frame")
-    cornerHandle.Name = "CornerResizeHandle"
-    cornerHandle.Size = UDim2.new(0, 10, 0, 10)
-    cornerHandle.Position = UDim2.new(1, -10, 1, -10)
-    cornerHandle.BackgroundColor3 = CurrentColor
-    cornerHandle.BackgroundTransparency = 0.5
-    cornerHandle.BorderSizePixel = 0
-    cornerHandle.Parent = frame
-    cornerHandle.Visible = true
-    
-    -- Добавляем иконку в угол
-    local cornerIcon = Instance.new("TextLabel")
-    cornerIcon.Size = UDim2.new(1, 0, 1, 0)
-    cornerIcon.BackgroundTransparency = 1
-    cornerIcon.Text = "◢"
-    cornerIcon.TextColor3 = CurrentColor
-    cornerIcon.TextSize = 8
-    cornerIcon.Font = Enum.Font.Code
-    cornerIcon.Parent = cornerHandle
-    
-    -- Функции для ресайза
-    local function startResize(direction)
-        return function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                Resizing = true
-                ResizeDirection = direction
-                
-                -- Подсветка при ресайзе
-                rightHandle.BackgroundTransparency = 0.3
-                bottomHandle.BackgroundTransparency = 0.3
-                cornerHandle.BackgroundTransparency = 0.3
-            end
-        end
-    end
-    
-    local function resize(input)
-        if not Resizing or not ResizeDirection then return end
-        
-        local mousePos = input.Position
-        local framePos = frame.AbsolutePosition
-        local frameSize = frame.AbsoluteSize
-        local newSize = frameSize
-        
-        if ResizeDirection == "right" or ResizeDirection == "corner" then
-            newSize = Vector2.new(
-                math.clamp(mousePos.X - framePos.X, MinSize.X, MaxSize.X),
-                frameSize.Y
-            )
-        end
-        
-        if ResizeDirection == "bottom" or ResizeDirection == "corner" then
-            newSize = Vector2.new(
-                frameSize.X,
-                math.clamp(mousePos.Y - framePos.Y, MinSize.Y, MaxSize.Y)
-            )
-        end
-        
-        if ResizeDirection == "corner" then
-            newSize = Vector2.new(
-                math.clamp(mousePos.X - framePos.X, MinSize.X, MaxSize.X),
-                math.clamp(mousePos.Y - framePos.Y, MinSize.Y, MaxSize.Y)
-            )
-        end
-        
-        frame.Size = UDim2.new(0, newSize.X, 0, newSize.Y)
-        
-        -- Обновляем позицию ColumnsFrame при ресайзе
-        if ColumnsFrame then
-            ColumnsFrame.Size = UDim2.new(1, -20, 1, -150)
-        end
-    end
-    
-    local function endResize()
-        Resizing = false
-        ResizeDirection = nil
-        rightHandle.BackgroundTransparency = 0.8
-        bottomHandle.BackgroundTransparency = 0.8
-        cornerHandle.BackgroundTransparency = 0.5
-    end
-    
-    -- Подключаем события
-    rightHandle.InputBegan:Connect(startResize("right"))
-    bottomHandle.InputBegan:Connect(startResize("bottom"))
-    cornerHandle.InputBegan:Connect(startResize("corner"))
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if Resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-            resize(input)
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            endResize()
-        end
-    end)
-    
-    -- Hover эффекты
-    local function onHandleHover(handle, transparency)
-        return function()
-            if not Resizing then
-                animate(handle, {BackgroundTransparency = transparency}, 0.1)
-            end
-        end
-    end
-    
-    rightHandle.MouseEnter:Connect(onHandleHover(rightHandle, 0.5))
-    rightHandle.MouseLeave:Connect(onHandleHover(rightHandle, 0.8))
-    bottomHandle.MouseEnter:Connect(onHandleHover(bottomHandle, 0.5))
-    bottomHandle.MouseLeave:Connect(onHandleHover(bottomHandle, 0.8))
-    cornerHandle.MouseEnter:Connect(onHandleHover(cornerHandle, 0.2))
-    cornerHandle.MouseLeave:Connect(onHandleHover(cornerHandle, 0.5))
+    return glow
 end
+
+-- Мониторинг производительности
+spawn(function()
+    while GUI.Parent do
+        FPS = math.floor(1 / RunService.RenderStepped:Wait())
+        Memory = math.floor(gcinfo() * 10) / 10
+    end
+end)
 
 function Library:CreateLib(title, theme)
     MainFrame = Instance.new("Frame")
@@ -182,13 +175,21 @@ function Library:CreateLib(title, theme)
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -325)
     MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     MainFrame.BorderSizePixel = 2
-    MainFrame.BorderColor3 = CurrentColor
+    MainFrame.BorderColor3 = DarkBorderColor
     MainFrame.Parent = GUI
     MainFrame.Active = true
     MainFrame.ClipsDescendants = true
     
-    -- Создаем ручки для изменения размера
-    createResizeHandles(MainFrame)
+    -- Внешняя обводка (темная)
+    local outerGlow = Instance.new("Frame")
+    outerGlow.Name = "OuterGlow"
+    outerGlow.Size = UDim2.new(1, 4, 1, 4)
+    outerGlow.Position = UDim2.new(0, -2, 0, -2)
+    outerGlow.BackgroundColor3 = DarkBorderColor
+    outerGlow.BackgroundTransparency = 0.5
+    outerGlow.BorderSizePixel = 0
+    outerGlow.ZIndex = MainFrame.ZIndex - 1
+    outerGlow.Parent = MainFrame
     
     -- Title Bar
     local titleBar = Instance.new("Frame")
@@ -197,7 +198,7 @@ function Library:CreateLib(title, theme)
     titleBar.Position = UDim2.new(0, 2, 0, 2)
     titleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     titleBar.BorderSizePixel = 1
-    titleBar.BorderColor3 = CurrentColor
+    titleBar.BorderColor3 = DarkBorderColor
     titleBar.Parent = MainFrame
     
     HideButton = Instance.new("TextButton")
@@ -206,17 +207,38 @@ function Library:CreateLib(title, theme)
     HideButton.Position = UDim2.new(0, 5, 0.5, -12)
     HideButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     HideButton.BorderSizePixel = 1
-    HideButton.BorderColor3 = CurrentColor
+    HideButton.BorderColor3 = DarkBorderColor
     HideButton.Text = "◀"
     HideButton.TextColor3 = CurrentColor
     HideButton.TextSize = 14
     HideButton.Font = Enum.Font.Code
     HideButton.Parent = titleBar
     
+    -- Текстовый индикатор состояния
+    local statusIndicator = Instance.new("TextLabel")
+    statusIndicator.Name = "StatusIndicator"
+    statusIndicator.Size = UDim2.new(0, 10, 0, 10)
+    statusIndicator.Position = UDim2.new(0, 40, 0.5, -5)
+    statusIndicator.BackgroundColor3 = CurrentColor
+    statusIndicator.BorderSizePixel = 1
+    statusIndicator.BorderColor3 = CurrentColor
+    statusIndicator.Text = ""
+    statusIndicator.Parent = titleBar
+    
+    -- Анимация индикатора
+    spawn(function()
+        while statusIndicator.Parent do
+            statusIndicator.BackgroundTransparency = 0.3
+            wait(0.5)
+            statusIndicator.BackgroundTransparency = 0
+            wait(0.5)
+        end
+    end)
+    
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
     titleText.Size = UDim2.new(1, -100, 1, 0)
-    titleText.Position = UDim2.new(0, 40, 0, 0)
+    titleText.Position = UDim2.new(0, 55, 0, 0)
     titleText.BackgroundTransparency = 1
     titleText.Text = " " .. (title or "CODE B HACK MODULE") .. " v7.0.0"
     titleText.TextColor3 = CurrentColor
@@ -231,14 +253,18 @@ function Library:CreateLib(title, theme)
     closeBtn.Position = UDim2.new(1, -35, 0.5, -12)
     closeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     closeBtn.BorderSizePixel = 1
-    closeBtn.BorderColor3 = CurrentColor
+    closeBtn.BorderColor3 = DarkBorderColor
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = CurrentColor
     closeBtn.TextSize = 14
     closeBtn.Font = Enum.Font.Code
     closeBtn.Parent = titleBar
     
-    closeBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
+    closeBtn.MouseButton1Click:Connect(function() 
+        matrixDissolveEffect(MainFrame, function()
+            GUI:Destroy() 
+        end)
+    end)
     
     -- Status Bar
     local statusBar = Instance.new("Frame")
@@ -247,7 +273,7 @@ function Library:CreateLib(title, theme)
     statusBar.Position = UDim2.new(0, 2, 0, 40)
     statusBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     statusBar.BorderSizePixel = 1
-    statusBar.BorderColor3 = CurrentColor
+    statusBar.BorderColor3 = DarkBorderColor
     statusBar.Parent = MainFrame
     
     local statusText = Instance.new("TextLabel")
@@ -264,8 +290,6 @@ function Library:CreateLib(title, theme)
     -- Обновление статуса
     spawn(function()
         while GUI.Parent do
-            FPS = math.floor(1 / RunService.RenderStepped:Wait())
-            Memory = math.floor(gcinfo() * 10) / 10
             statusText.Text = string.format("> SYSTEM: ONLINE | FPS: %d | MEMORY: %.1f MB", FPS, Memory)
             wait(0.5)
         end
@@ -285,7 +309,7 @@ function Library:CreateLib(title, theme)
     tabBar.Position = UDim2.new(0, 10, 0, 10)
     tabBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     tabBar.BorderSizePixel = 1
-    tabBar.BorderColor3 = CurrentColor
+    tabBar.BorderColor3 = DarkBorderColor
     tabBar.Parent = MainFrame
     tabBar.ClipsDescendants = true
     
@@ -303,30 +327,109 @@ function Library:CreateLib(title, theme)
     bottomFrame.Position = UDim2.new(0, 10, 1, -50)
     bottomFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     bottomFrame.BorderSizePixel = 1
-    bottomFrame.BorderColor3 = CurrentColor
+    bottomFrame.BorderColor3 = DarkBorderColor
     bottomFrame.Parent = MainFrame
     
     local helpText = Instance.new("TextLabel")
     helpText.Size = UDim2.new(1, -10, 1, 0)
     helpText.Position = UDim2.new(0, 5, 0, 0)
     helpText.BackgroundTransparency = 1
-    helpText.Text = "[RIGHT CTRL] TOGGLE | [ESC] CLOSE | DRAG CORNER TO RESIZE"
+    helpText.Text = "[RIGHT CTRL] TOGGLE | [ESC] CLOSE | [DRAG CORNERS] RESIZE"
     helpText.TextColor3 = InactiveColor
     helpText.TextSize = 10
     helpText.Font = Enum.Font.Code
     helpText.TextXAlignment = Enum.TextXAlignment.Left
     helpText.Parent = bottomFrame
     
-    -- Dragging (перетаскивание всего окна)
+    -- Создание углов для изменения размера
+    local resizeCorners = {}
+    local cornerPositions = {
+        {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0, 0, 0, 0), Cursor = "SizeAll"},
+        {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(1, -10, 0, 0), Cursor = "SizeAll"},
+        {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0, 0, 1, -10), Cursor = "SizeAll"},
+        {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(1, -10, 1, -10), Cursor = "SizeAll"}
+    }
+    
+    for i, pos in ipairs(cornerPositions) do
+        local corner = Instance.new("TextButton")
+        corner.Name = "ResizeCorner" .. i
+        corner.Size = pos.Size
+        corner.Position = pos.Position
+        corner.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        corner.BackgroundTransparency = 0.5
+        corner.BorderSizePixel = 1
+        corner.BorderColor3 = CurrentColor
+        corner.Text = i == 4 and "↘" or (i == 3 and "↙" or (i == 2 and "↗" or "↖"))
+        corner.TextColor3 = CurrentColor
+        corner.TextSize = 8
+        corner.Font = Enum.Font.Code
+        corner.Parent = MainFrame
+        corner.ZIndex = 10
+        
+        -- Изменяем видимость при наведении
+        corner.MouseEnter:Connect(function()
+            animate(corner, {BackgroundTransparency = 0, BorderColor3 = CurrentColor}, 0.1)
+        end)
+        
+        corner.MouseLeave:Connect(function()
+            animate(corner, {BackgroundTransparency = 0.5, BorderColor3 = DarkBorderColor}, 0.1)
+        end)
+        
+        -- Функционал изменения размера
+        corner.MouseButton1Down:Connect(function(input)
+            Resizing = true
+            ResizeDirection = i
+            local startPos = input.Position
+            local startSize = MainFrame.Size
+            local startX, startY = startSize.X.Offset, startSize.Y.Offset
+            
+            local connection
+            connection = UserInputService.InputChanged:Connect(function(input)
+                if Resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local delta = input.Position - startPos
+                    local newWidth = startX
+                    local newHeight = startY
+                    
+                    if i == 1 or i == 3 then -- левая сторона
+                        newWidth = math.max(MinSize.X, startX - delta.X)
+                    elseif i == 2 or i == 4 then -- правая сторона
+                        newWidth = math.max(MinSize.X, startX + delta.X)
+                    end
+                    
+                    if i == 1 or i == 2 then -- верхняя сторона
+                        newHeight = math.max(MinSize.Y, startY - delta.Y)
+                    elseif i == 3 or i == 4 then -- нижняя сторона
+                        newHeight = math.max(MinSize.Y, startY + delta.Y)
+                    end
+                    
+                    MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+                end
+            end)
+            
+            local releaseConn
+            releaseConn = UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Resizing = false
+                    ResizeDirection = nil
+                    connection:Disconnect()
+                    releaseConn:Disconnect()
+                end
+            end)
+        end)
+        
+        table.insert(resizeCorners, corner)
+    end
+    
+    -- Dragging для перемещения всего окна
     local dragging = false
     local dragStart, startPos
     
     titleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not Resizing then
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
-            titleBar.BorderColor3 = Color3.fromRGB(200, 200, 200)
+            titleBar.BorderColor3 = CurrentColor
         end
     end)
     
@@ -345,104 +448,36 @@ function Library:CreateLib(title, theme)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
-            titleBar.BorderColor3 = CurrentColor
+            titleBar.BorderColor3 = DarkBorderColor
         end
     end)
     
-    -- Функционал для перемещения элементов внутри секций
-    local function makeElementDraggable(element, elementType, section)
-        local dragHandle = Instance.new("Frame")
-        dragHandle.Name = "DragHandle"
-        dragHandle.Size = UDim2.new(0, 20, 1, 0)
-        dragHandle.Position = UDim2.new(0, 0, 0, 0)
-        dragHandle.BackgroundColor3 = CurrentColor
-        dragHandle.BackgroundTransparency = 0.9
-        dragHandle.BorderSizePixel = 0
-        dragHandle.Parent = element
-        dragHandle.ZIndex = 10
-        
-        local dragIcon = Instance.new("TextLabel")
-        dragIcon.Size = UDim2.new(1, 0, 1, 0)
-        dragIcon.BackgroundTransparency = 1
-        dragIcon.Text = "⋮⋮"
-        dragIcon.TextColor3 = CurrentColor
-        dragIcon.TextSize = 12
-        dragIcon.Font = Enum.Font.Code
-        dragIcon.Parent = dragHandle
-        dragIcon.ZIndex = 11
-        
-        local dragging = false
-        local startY, elementPos
-        
-        dragHandle.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                startY = input.Position.Y
-                elementPos = element.Position
-                animate(dragHandle, {BackgroundTransparency = 0.5}, 0.1)
-                element.ZIndex = 100
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local deltaY = input.Position.Y - startY
-                local newPos = UDim2.new(0, elementPos.X.Offset, 0, elementPos.Y.Offset + deltaY)
-                
-                -- Ограничиваем перемещение в пределах секции
-                if section then
-                    local sectionSize = section.AbsoluteSize.Y
-                    local elementHeight = element.AbsoluteSize.Y
-                    newPos = UDim2.new(0, elementPos.X.Offset, 0, math.clamp(elementPos.Y.Offset + deltaY, 0, sectionSize - elementHeight))
-                end
-                
-                element.Position = newPos
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 and dragging then
-                dragging = false
-                animate(dragHandle, {BackgroundTransparency = 0.9}, 0.1)
-                element.ZIndex = 1
-            end
-        end)
-        
-        dragHandle.MouseEnter:Connect(function()
-            if not dragging then
-                animate(dragHandle, {BackgroundTransparency = 0.7}, 0.1)
-            end
-        end)
-        
-        dragHandle.MouseLeave:Connect(function()
-            if not dragging then
-                animate(dragHandle, {BackgroundTransparency = 0.9}, 0.1)
-            end
-        end)
-    end
-    
-    -- Сохраняем функцию для использования в секциях
-    Library.MakeElementDraggable = makeElementDraggable
-    
-    -- Hide/show functionality
+    -- Hide/show functionality с матричным эффектом
     HideButton.MouseButton1Click:Connect(function()
         IsVisible = not IsVisible
         
         if IsVisible then
             HideButton.Text = "◀"
-            animate(MainFrame, {Size = UDim2.new(0, 600, 0, 650)}, 0.3)
-            wait(0.1)
-            ColumnsFrame.Visible = true
-            tabBar.Visible = true
-            bottomFrame.Visible = true
-            statusBar.Visible = true
+            MainFrame.Visible = false
+            matrixAssembleEffect(MainFrame, function()
+                MainFrame.Visible = true
+                animate(MainFrame, {Size = UDim2.new(0, 600, 0, 650)}, 0.3)
+                ColumnsFrame.Visible = true
+                tabBar.Visible = true
+                bottomFrame.Visible = true
+                statusBar.Visible = true
+            end)
         else
             HideButton.Text = "▶"
-            animate(MainFrame, {Size = UDim2.new(0, 200, 0, 35)}, 0.3)
-            ColumnsFrame.Visible = false
-            tabBar.Visible = false
-            bottomFrame.Visible = false
-            statusBar.Visible = false
+            matrixDissolveEffect(MainFrame, function()
+                MainFrame.Visible = false
+                animate(MainFrame, {Size = UDim2.new(0, 200, 0, 35)}, 0.3)
+                ColumnsFrame.Visible = false
+                tabBar.Visible = false
+                bottomFrame.Visible = false
+                statusBar.Visible = false
+                MainFrame.Visible = true
+            end)
         end
     end)
     
@@ -454,41 +489,34 @@ function Library:CreateLib(title, theme)
                 
                 if IsVisible then
                     HideButton.Text = "◀"
-                    animate(MainFrame, {Size = UDim2.new(0, 600, 0, 650)}, 0.3)
-                    wait(0.1)
-                    ColumnsFrame.Visible = true
-                    tabBar.Visible = true
-                    bottomFrame.Visible = true
-                    statusBar.Visible = true
+                    MainFrame.Visible = false
+                    matrixAssembleEffect(MainFrame, function()
+                        MainFrame.Visible = true
+                        animate(MainFrame, {Size = UDim2.new(0, 600, 0, 650)}, 0.3)
+                        ColumnsFrame.Visible = true
+                        tabBar.Visible = true
+                        bottomFrame.Visible = true
+                        statusBar.Visible = true
+                    end)
                 else
                     HideButton.Text = "▶"
-                    animate(MainFrame, {Size = UDim2.new(0, 200, 0, 35)}, 0.3)
-                    ColumnsFrame.Visible = false
-                    tabBar.Visible = false
-                    bottomFrame.Visible = false
-                    statusBar.Visible = false
+                    matrixDissolveEffect(MainFrame, function()
+                        MainFrame.Visible = false
+                        animate(MainFrame, {Size = UDim2.new(0, 200, 0, 35)}, 0.3)
+                        ColumnsFrame.Visible = false
+                        tabBar.Visible = false
+                        bottomFrame.Visible = false
+                        statusBar.Visible = false
+                        MainFrame.Visible = true
+                    end)
                 end
             elseif input.KeyCode == Enum.KeyCode.Escape then
-                GUI:Destroy()
+                matrixDissolveEffect(MainFrame, function()
+                    GUI:Destroy()
+                end)
             end
         end
     end)
-    
-    local function updateTabSizes()
-        local containerWidth = tabContainer.AbsoluteSize.X
-        local tabCount = #TabButtons
-        if tabCount == 0 then return end
-        
-        local tabWidth = math.floor((containerWidth - 10 * (tabCount - 1)) / tabCount)
-        tabWidth = math.clamp(tabWidth, 70, 150)
-        
-        for i, tabBtn in ipairs(TabButtons) do
-            tabBtn.Size = UDim2.new(0, tabWidth, 1, -4)
-            tabBtn.Position = UDim2.new(0, (i - 1) * (tabWidth + 10) + 5, 0, 2)
-        end
-    end
-    
-    tabBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTabSizes)
     
     return self
 end
@@ -515,7 +543,6 @@ function Library:NewTab(name)
     tabFrame.Parent = tabContainer
     tabFrame.Visible = false
     
-    -- Layout для автоматического расположения
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 10)
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -550,8 +577,8 @@ function Library:NewTab(name)
         tabButton.Position = UDim2.new(0, (#TabButtons * 110 + 5), 0, 2)
         tabButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         tabButton.BorderSizePixel = 1
-        tabButton.BorderColor3 = (#TabButtons == 0) and CurrentColor or InactiveColor
-        tabButton.Text = name
+        tabButton.BorderColor3 = (#TabButtons == 0) and CurrentColor or DarkBorderColor
+        tabButton.Text = "[" .. name .. "]"
         tabButton.TextColor3 = (#TabButtons == 0) and CurrentColor or InactiveColor
         tabButton.TextSize = 12
         tabButton.Font = Enum.Font.Code
@@ -573,40 +600,12 @@ function Library:NewTab(name)
             tabFrame.Visible = true
             
             for _, btn in ipairs(TabButtons) do
-                btn.BorderColor3 = InactiveColor
+                btn.BorderColor3 = DarkBorderColor
                 btn.TextColor3 = InactiveColor
             end
             
             tabButton.BorderColor3 = CurrentColor
             tabButton.TextColor3 = CurrentColor
-        end)
-        
-        tabButton.MouseEnter:Connect(function()
-            if tabButton.TextColor3 ~= CurrentColor then
-                animate(tabButton, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.2)
-                animate(tabButton, {BorderColor3 = Color3.fromRGB(200, 200, 200)}, 0.2)
-            end
-        end)
-        
-        tabButton.MouseLeave:Connect(function()
-            if tabButton.TextColor3 ~= CurrentColor then
-                animate(tabButton, {TextColor3 = InactiveColor}, 0.2)
-                animate(tabButton, {BorderColor3 = InactiveColor}, 0.2)
-            end
-        end)
-        
-        tabButtonContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-            local containerWidth = tabButtonContainer.AbsoluteSize.X
-            local tabCount = #TabButtons
-            if tabCount == 0 then return end
-            
-            local tabWidth = math.floor((containerWidth - 10 * (tabCount - 1)) / tabCount)
-            tabWidth = math.clamp(tabWidth, 70, 150)
-            
-            for i, btn in ipairs(TabButtons) do
-                btn.Size = UDim2.new(0, tabWidth, 1, -4)
-                btn.Position = UDim2.new(0, (i - 1) * (tabWidth + 10) + 5, 0, 2)
-            end
         end)
     end
     
@@ -617,7 +616,7 @@ function Library:NewTab(name)
         sectionFrame.Size = UDim2.new(1, 0, 0, 0)
         sectionFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         sectionFrame.BorderSizePixel = 1
-        sectionFrame.BorderColor3 = InactiveColor
+        sectionFrame.BorderColor3 = DarkBorderColor
         sectionFrame.Parent = container
         sectionFrame.AutomaticSize = Enum.AutomaticSize.Y
         
@@ -661,15 +660,12 @@ function Library:NewTab(name)
             buttonFrame.Size = UDim2.new(1, 0, 0, 40)
             buttonFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             buttonFrame.BorderSizePixel = 1
-            buttonFrame.BorderColor3 = InactiveColor
+            buttonFrame.BorderColor3 = DarkBorderColor
             buttonFrame.Parent = sectionContent
             
-            -- Добавляем возможность перетаскивания для кнопок
-            Library.MakeElementDraggable(buttonFrame, "Button", sectionContent)
-            
             local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -50, 0, 20)
-            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
+            nameLabel.Size = UDim2.new(1, -30, 0, 20)
+            nameLabel.Position = UDim2.new(0, 5, 0, 3)
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. buttonName
             nameLabel.TextColor3 = CurrentColor
@@ -679,8 +675,8 @@ function Library:NewTab(name)
             nameLabel.Parent = buttonFrame
             
             local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -50, 0, 12)
-            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
+            descLabel.Size = UDim2.new(1, -30, 0, 12)
+            descLabel.Position = UDim2.new(0, 5, 0, 23)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "execute")
             descLabel.TextColor3 = InactiveColor
@@ -711,16 +707,16 @@ function Library:NewTab(name)
             end)
             
             button.MouseLeave:Connect(function()
-                animate(buttonFrame, {BorderColor3 = InactiveColor}, 0.1)
+                animate(buttonFrame, {BorderColor3 = DarkBorderColor}, 0.1)
                 animate(execSymbol, {TextColor3 = InactiveColor}, 0.1)
             end)
             
             button.MouseButton1Click:Connect(function()
-                animate(buttonFrame, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.05)
-                animate(execSymbol, {Text = "▶▶"}, 0.05)
+                animate(buttonFrame, {BackgroundColor3 = Color3.fromRGB(10, 10, 10)}, 0.05)
+                animate(execSymbol, {Text = "▶▶", TextColor3 = CurrentColor}, 0.05)
                 wait(0.1)
                 animate(buttonFrame, {BackgroundColor3 = Color3.fromRGB(0, 0, 0)}, 0.1)
-                animate(execSymbol, {Text = "▶"}, 0.1)
+                animate(execSymbol, {Text = "▶", TextColor3 = InactiveColor}, 0.1)
                 
                 if callback then
                     local success, err = pcall(callback)
@@ -735,18 +731,15 @@ function Library:NewTab(name)
         
         function SectionObject:NewToggle(toggleName, description, callback)
             local toggleFrame = Instance.new("Frame")
-            toggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            toggleFrame.Size = UDim2.new(1, 0, 0, 45)
             toggleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             toggleFrame.BorderSizePixel = 1
-            toggleFrame.BorderColor3 = InactiveColor
+            toggleFrame.BorderColor3 = DarkBorderColor
             toggleFrame.Parent = sectionContent
             
-            -- Добавляем возможность перетаскивания для тогглов
-            Library.MakeElementDraggable(toggleFrame, "Toggle", sectionContent)
-            
             local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -100, 0, 20)
-            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
+            nameLabel.Size = UDim2.new(1, -90, 0, 20)
+            nameLabel.Position = UDim2.new(0, 5, 0, 3)
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. toggleName
             nameLabel.TextColor3 = CurrentColor
@@ -756,8 +749,8 @@ function Library:NewTab(name)
             nameLabel.Parent = toggleFrame
             
             local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -100, 0, 12)
-            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
+            descLabel.Size = UDim2.new(1, -90, 0, 12)
+            descLabel.Position = UDim2.new(0, 5, 0, 23)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "toggle")
             descLabel.TextColor3 = InactiveColor
@@ -766,45 +759,46 @@ function Library:NewTab(name)
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
             descLabel.Parent = toggleFrame
             
-            -- Визуальный переключатель
+            -- Новый хакерский переключатель в виде кода
             local toggleSwitch = Instance.new("Frame")
-            toggleSwitch.Size = UDim2.new(0, 40, 0, 20)
-            toggleSwitch.Position = UDim2.new(1, -45, 0.5, -10)
+            toggleSwitch.Size = UDim2.new(0, 70, 0, 25)
+            toggleSwitch.Position = UDim2.new(1, -75, 0.5, -12)
             toggleSwitch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             toggleSwitch.BorderSizePixel = 1
-            toggleSwitch.BorderColor3 = InactiveColor
+            toggleSwitch.BorderColor3 = DarkBorderColor
             toggleSwitch.Parent = toggleFrame
             
-            local toggleIndicator = Instance.new("Frame")
-            toggleIndicator.Size = UDim2.new(0, 16, 0, 16)
-            toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-            toggleIndicator.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-            toggleIndicator.BorderSizePixel = 1
-            toggleIndicator.BorderColor3 = InactiveColor
-            toggleIndicator.Parent = toggleSwitch
-            
-            -- Кружок для индикатора
-            local indicatorCorner = Instance.new("UICorner")
-            indicatorCorner.CornerRadius = UDim.new(1, 0)
-            indicatorCorner.Parent = toggleIndicator
+            local binaryLabels = {}
+            for i = 1, 3 do
+                local binLabel = Instance.new("TextLabel")
+                binLabel.Size = UDim2.new(0, 20, 1, 0)
+                binLabel.Position = UDim2.new(0, (i-1) * 23 + 3, 0, 0)
+                binLabel.BackgroundTransparency = 1
+                binLabel.Text = i == 1 and "0" or (i == 2 and "1" or "0")
+                binLabel.TextColor3 = InactiveColor
+                binLabel.TextSize = 12
+                binLabel.Font = Enum.Font.Code
+                binLabel.Parent = toggleSwitch
+                table.insert(binaryLabels, binLabel)
+            end
             
             local toggleState = false
             
             local function updateToggle()
                 if toggleState then
-                    animate(toggleIndicator, {
-                        Position = UDim2.new(1, -18, 0.5, -8),
-                        BackgroundColor3 = CurrentColor,
-                        BorderColor3 = CurrentColor
-                    }, 0.2)
+                    -- Включено: меняем бинарный код
+                    for i, label in ipairs(binaryLabels) do
+                        label.Text = i == 1 and "1" or (i == 2 and "1" or "1")
+                        animate(label, {TextColor3 = CurrentColor}, 0.2)
+                    end
                     animate(toggleSwitch, {BorderColor3 = CurrentColor}, 0.2)
                 else
-                    animate(toggleIndicator, {
-                        Position = UDim2.new(0, 2, 0.5, -8),
-                        BackgroundColor3 = Color3.fromRGB(80, 80, 80),
-                        BorderColor3 = InactiveColor
-                    }, 0.2)
-                    animate(toggleSwitch, {BorderColor3 = InactiveColor}, 0.2)
+                    -- Выключено: возвращаем исходный код
+                    for i, label in ipairs(binaryLabels) do
+                        label.Text = i == 1 and "0" or (i == 2 and "1" or "0")
+                        animate(label, {TextColor3 = InactiveColor}, 0.2)
+                    end
+                    animate(toggleSwitch, {BorderColor3 = DarkBorderColor}, 0.2)
                 end
             end
             
@@ -831,18 +825,15 @@ function Library:NewTab(name)
         
         function SectionObject:NewSlider(sliderName, description, min, max, default, callback)
             local sliderFrame = Instance.new("Frame")
-            sliderFrame.Size = UDim2.new(1, 0, 0, 65)
+            sliderFrame.Size = UDim2.new(1, 0, 0, 70)
             sliderFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             sliderFrame.BorderSizePixel = 1
-            sliderFrame.BorderColor3 = InactiveColor
+            sliderFrame.BorderColor3 = DarkBorderColor
             sliderFrame.Parent = sectionContent
-            
-            -- Добавляем возможность перетаскивания для слайдеров
-            Library.MakeElementDraggable(sliderFrame, "Slider", sectionContent)
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -70, 0, 20)
-            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
+            nameLabel.Position = UDim2.new(0, 5, 0, 3)
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. sliderName
             nameLabel.TextColor3 = CurrentColor
@@ -853,7 +844,7 @@ function Library:NewTab(name)
             
             local descLabel = Instance.new("TextLabel")
             descLabel.Size = UDim2.new(1, -70, 0, 12)
-            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
+            descLabel.Position = UDim2.new(0, 5, 0, 23)
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "adjust")
             descLabel.TextColor3 = InactiveColor
@@ -863,23 +854,23 @@ function Library:NewTab(name)
             descLabel.Parent = sliderFrame
             
             local valueLabel = Instance.new("TextLabel")
-            valueLabel.Size = UDim2.new(0, 40, 0, 20)
-            valueLabel.Position = UDim2.new(1, -45, 0, 5)
+            valueLabel.Size = UDim2.new(0, 50, 0, 20)
+            valueLabel.Position = UDim2.new(1, -55, 0, 5)
             valueLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             valueLabel.BorderSizePixel = 1
             valueLabel.BorderColor3 = CurrentColor
-            valueLabel.Text = tostring(default or min)
+            valueLabel.Text = "[" .. tostring(default or min) .. "]"
             valueLabel.TextColor3 = CurrentColor
             valueLabel.TextSize = 10
             valueLabel.Font = Enum.Font.Code
             valueLabel.Parent = sliderFrame
             
             local sliderBg = Instance.new("Frame")
-            sliderBg.Size = UDim2.new(1, -80, 0, 4)
-            sliderBg.Position = UDim2.new(0, 25, 0, 45) -- Сдвигаем вправо из-за drag handle
-            sliderBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            sliderBg.Size = UDim2.new(1, -60, 0, 4)
+            sliderBg.Position = UDim2.new(0, 5, 0, 50)
+            sliderBg.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
             sliderBg.BorderSizePixel = 1
-            sliderBg.BorderColor3 = InactiveColor
+            sliderBg.BorderColor3 = DarkBorderColor
             sliderBg.Parent = sliderFrame
             
             local sliderFill = Instance.new("Frame")
@@ -887,6 +878,17 @@ function Library:NewTab(name)
             sliderFill.BackgroundColor3 = CurrentColor
             sliderFill.BorderSizePixel = 0
             sliderFill.Parent = sliderBg
+            
+            -- Матричные полоски на слайдере
+            for i = 1, 5 do
+                local matrixLine = Instance.new("Frame")
+                matrixLine.Size = UDim2.new(0, 1, 1, 0)
+                matrixLine.Position = UDim2.new(0, i * 20, 0, 0)
+                matrixLine.BackgroundColor3 = CurrentColor
+                matrixLine.BackgroundTransparency = 0.7
+                matrixLine.BorderSizePixel = 0
+                matrixLine.Parent = sliderBg
+            end
             
             local sliderButton = Instance.new("TextButton")
             sliderButton.Size = UDim2.new(1, 0, 1, 0)
@@ -909,7 +911,7 @@ function Library:NewTab(name)
                 currentValue = math.clamp(currentValue, min, max)
                 
                 sliderFill.Size = UDim2.new(percent, 0, 1, 0)
-                valueLabel.Text = tostring(currentValue)
+                valueLabel.Text = "[" .. tostring(currentValue) .. "]"
                 
                 if callback then
                     local success, err = pcall(function() callback(currentValue) end)
@@ -922,7 +924,7 @@ function Library:NewTab(name)
             if default then
                 local percent = (default - min) / (max - min)
                 sliderFill.Size = UDim2.new(percent, 0, 1, 0)
-                valueLabel.Text = tostring(default)
+                valueLabel.Text = "[" .. tostring(default) .. "]"
                 if callback then pcall(function() callback(default) end) end
             end
             
@@ -941,264 +943,9 @@ function Library:NewTab(name)
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     dragging = false
-                    animate(sliderBg, {BorderColor3 = InactiveColor}, 0.1)
+                    animate(sliderBg, {BorderColor3 = DarkBorderColor}, 0.1)
                 end
             end)
-            
-            return SectionObject
-        end
-        
-        function SectionObject:NewDropdown(dropdownName, description)
-            local dropdownFrame = Instance.new("Frame")
-            dropdownFrame.Size = UDim2.new(1, 0, 0, 40)
-            dropdownFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            dropdownFrame.BorderSizePixel = 1
-            dropdownFrame.BorderColor3 = InactiveColor
-            dropdownFrame.Parent = sectionContent
-            dropdownFrame.ClipsDescendants = true
-            
-            -- Добавляем возможность перетаскивания для дропдаунов
-            Library.MakeElementDraggable(dropdownFrame, "Dropdown", sectionContent)
-            
-            local dropdownButton = Instance.new("TextButton")
-            dropdownButton.Size = UDim2.new(1, 0, 0, 40)
-            dropdownButton.Position = UDim2.new(0, 0, 0, 0)
-            dropdownButton.BackgroundTransparency = 1
-            dropdownButton.Text = ""
-            dropdownButton.Parent = dropdownFrame
-            
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -50, 0, 20)
-            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "> " .. dropdownName
-            nameLabel.TextColor3 = CurrentColor
-            nameLabel.TextSize = 12
-            nameLabel.Font = Enum.Font.Code
-            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-            nameLabel.Parent = dropdownFrame
-            
-            local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -50, 0, 12)
-            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
-            descLabel.BackgroundTransparency = 1
-            descLabel.Text = "  " .. (description or "expand")
-            descLabel.TextColor3 = InactiveColor
-            descLabel.TextSize = 9
-            descLabel.Font = Enum.Font.Code
-            descLabel.TextXAlignment = Enum.TextXAlignment.Left
-            descLabel.Parent = dropdownFrame
-            
-            local arrowLabel = Instance.new("TextLabel")
-            arrowLabel.Size = UDim2.new(0, 20, 0, 20)
-            arrowLabel.Position = UDim2.new(1, -25, 0.5, -10)
-            arrowLabel.BackgroundTransparency = 1
-            arrowLabel.Text = "▼"
-            arrowLabel.TextColor3 = InactiveColor
-            arrowLabel.TextSize = 12
-            arrowLabel.Font = Enum.Font.Code
-            arrowLabel.Parent = dropdownFrame
-            
-            local dropdownContent = Instance.new("Frame")
-            dropdownContent.Name = "DropdownContent"
-            dropdownContent.Size = UDim2.new(1, 0, 0, 0)
-            dropdownContent.Position = UDim2.new(0, 0, 0, 40)
-            dropdownContent.BackgroundTransparency = 1
-            dropdownContent.Parent = dropdownFrame
-            dropdownContent.AutomaticSize = Enum.AutomaticSize.Y
-            
-            local contentLayout = Instance.new("UIListLayout")
-            contentLayout.Padding = UDim.new(0, 2)
-            contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-            contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            contentLayout.Parent = dropdownContent
-            
-            local isOpen = false
-            
-            local function toggleDropdown()
-                isOpen = not isOpen
-                
-                if isOpen then
-                    animate(arrowLabel, {Text = "▲", TextColor3 = CurrentColor}, 0.2)
-                    animate(dropdownFrame, {Size = UDim2.new(1, 0, 0, 40 + dropdownContent.AbsoluteSize.Y)}, 0.2)
-                    animate(dropdownFrame, {BorderColor3 = CurrentColor}, 0.2)
-                else
-                    animate(arrowLabel, {Text = "▼", TextColor3 = InactiveColor}, 0.2)
-                    animate(dropdownFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.2)
-                    animate(dropdownFrame, {BorderColor3 = InactiveColor}, 0.2)
-                end
-            end
-            
-            dropdownButton.MouseButton1Click:Connect(toggleDropdown)
-            
-            contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                if isOpen then
-                    dropdownFrame.Size = UDim2.new(1, 0, 0, 40 + contentLayout.AbsoluteContentSize.Y)
-                end
-            end)
-            
-            local DropdownObject = {}
-            
-            function DropdownObject:NewButton(buttonName, buttonCallback)
-                local buttonFrame = Instance.new("Frame")
-                buttonFrame.Size = UDim2.new(1, -10, 0, 30)
-                buttonFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                buttonFrame.BorderSizePixel = 1
-                buttonFrame.BorderColor3 = InactiveColor
-                buttonFrame.Parent = dropdownContent
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -20, 1, 0)
-                nameLabel.Position = UDim2.new(0, 5, 0, 0)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "  → " .. buttonName
-                nameLabel.TextColor3 = InactiveColor
-                nameLabel.TextSize = 11
-                nameLabel.Font = Enum.Font.Code
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = buttonFrame
-                
-                local button = Instance.new("TextButton")
-                button.Size = UDim2.new(1, 0, 1, 0)
-                button.BackgroundTransparency = 1
-                button.Text = ""
-                button.Parent = buttonFrame
-                
-                button.MouseEnter:Connect(function()
-                    animate(buttonFrame, {BorderColor3 = CurrentColor}, 0.1)
-                    animate(nameLabel, {TextColor3 = CurrentColor}, 0.1)
-                end)
-                
-                button.MouseLeave:Connect(function()
-                    animate(buttonFrame, {BorderColor3 = InactiveColor}, 0.1)
-                    animate(nameLabel, {TextColor3 = InactiveColor}, 0.1)
-                end)
-                
-                button.MouseButton1Click:Connect(function()
-                    animate(buttonFrame, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.05)
-                    wait(0.1)
-                    animate(buttonFrame, {BackgroundColor3 = Color3.fromRGB(0, 0, 0)}, 0.1)
-                    
-                    if buttonCallback then
-                        local success, err = pcall(buttonCallback)
-                        if not success then
-                            Library:Notification("ERROR", "Dropdown error", 2)
-                        end
-                    end
-                end)
-                
-                return DropdownObject
-            end
-            
-            function DropdownObject:NewToggle(toggleName, description, callback)
-                local toggleFrame = Instance.new("Frame")
-                toggleFrame.Size = UDim2.new(1, -10, 0, 35)
-                toggleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                toggleFrame.BorderSizePixel = 1
-                toggleFrame.BorderColor3 = InactiveColor
-                toggleFrame.Parent = dropdownContent
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -70, 0, 20)
-                nameLabel.Position = UDim2.new(0, 5, 0, 3)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "  → " .. toggleName
-                nameLabel.TextColor3 = InactiveColor
-                nameLabel.TextSize = 11
-                nameLabel.Font = Enum.Font.Code
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = toggleFrame
-                
-                -- Маленький переключатель для дропдауна
-                local toggleSwitch = Instance.new("Frame")
-                toggleSwitch.Size = UDim2.new(0, 30, 0, 16)
-                toggleSwitch.Position = UDim2.new(1, -35, 0.5, -8)
-                toggleSwitch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                toggleSwitch.BorderSizePixel = 1
-                toggleSwitch.BorderColor3 = InactiveColor
-                toggleSwitch.Parent = toggleFrame
-                
-                local toggleIndicator = Instance.new("Frame")
-                toggleIndicator.Size = UDim2.new(0, 12, 0, 12)
-                toggleIndicator.Position = UDim2.new(0, 2, 0.5, -6)
-                toggleIndicator.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-                toggleIndicator.BorderSizePixel = 1
-                toggleIndicator.BorderColor3 = InactiveColor
-                toggleIndicator.Parent = toggleSwitch
-                
-                local indicatorCorner = Instance.new("UICorner")
-                indicatorCorner.CornerRadius = UDim.new(1, 0)
-                indicatorCorner.Parent = toggleIndicator
-                
-                local toggleState = false
-                
-                local function updateToggle()
-                    if toggleState then
-                        animate(toggleIndicator, {
-                            Position = UDim2.new(1, -14, 0.5, -6),
-                            BackgroundColor3 = CurrentColor,
-                            BorderColor3 = CurrentColor
-                        }, 0.2)
-                        animate(toggleSwitch, {BorderColor3 = CurrentColor}, 0.2)
-                    else
-                        animate(toggleIndicator, {
-                            Position = UDim2.new(0, 2, 0.5, -6),
-                            BackgroundColor3 = Color3.fromRGB(80, 80, 80),
-                            BorderColor3 = InactiveColor
-                        }, 0.2)
-                        animate(toggleSwitch, {BorderColor3 = InactiveColor}, 0.2)
-                    end
-                end
-                
-                local toggleButton = Instance.new("TextButton")
-                toggleButton.Size = UDim2.new(1, 0, 1, 0)
-                toggleButton.BackgroundTransparency = 1
-                toggleButton.Text = ""
-                toggleButton.Parent = toggleFrame
-                
-                toggleButton.MouseButton1Click:Connect(function()
-                    toggleState = not toggleState
-                    updateToggle()
-                    
-                    if callback then
-                        local success, err = pcall(function() callback(toggleState) end)
-                        if not success then
-                            Library:Notification("ERROR", "Dropdown toggle error", 2)
-                        end
-                    end
-                end)
-                
-                return DropdownObject
-            end
-            
-            return DropdownObject
-        end
-        
-        function SectionObject:NewTextBlock(text)
-            local textFrame = Instance.new("Frame")
-            textFrame.Size = UDim2.new(1, 0, 0, 0)
-            textFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            textFrame.BorderSizePixel = 1
-            textFrame.BorderColor3 = InactiveColor
-            textFrame.Parent = sectionContent
-            textFrame.AutomaticSize = Enum.AutomaticSize.Y
-            
-            -- Добавляем возможность перетаскивания для текстовых блоков
-            Library.MakeElementDraggable(textFrame, "TextBlock", sectionContent)
-            
-            local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, -40, 0, 0) -- Уменьшаем ширину из-за drag handle
-            textLabel.Position = UDim2.new(0, 30, 0, 10) -- Сдвигаем вправо
-            textLabel.BackgroundTransparency = 1
-            textLabel.Text = text or ""
-            textLabel.TextColor3 = CurrentColor
-            textLabel.TextSize = 11
-            textLabel.Font = Enum.Font.Code
-            textLabel.TextWrapped = true
-            textLabel.TextXAlignment = Enum.TextXAlignment.Left
-            textLabel.TextYAlignment = Enum.TextYAlignment.Top
-            textLabel.AutomaticSize = Enum.AutomaticSize.Y
-            textLabel.Parent = textFrame
             
             return SectionObject
         end
@@ -1218,16 +965,23 @@ function Library:Notification(title, message, duration)
     
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "NotificationFrame"
-    notifFrame.Size = UDim2.new(0, 300, 0, 0)
-    notifFrame.Position = UDim2.new(1, -320, 0, 20 + #Notifications * 70)
+    notifFrame.Size = UDim2.new(0, 320, 0, 0)
+    notifFrame.Position = UDim2.new(1, -340, 0, 20 + #Notifications * 80)
     notifFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notifFrame.BorderSizePixel = 1
-    notifFrame.BorderColor3 = CurrentColor
+    notifFrame.BorderSizePixel = 2
+    notifFrame.BorderColor3 = DarkBorderColor
     notifFrame.Parent = notificationGui
     notifFrame.ClipsDescendants = true
     
+    -- Матричный фон для уведомления
+    local matrixBG = Instance.new("Frame")
+    matrixBG.Size = UDim2.new(1, 0, 1, 0)
+    matrixBG.BackgroundTransparency = 0.9
+    matrixBG.BackgroundColor3 = CurrentColor
+    matrixBG.Parent = notifFrame
+    
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -20, 0, 20)
+    titleLabel.Size = UDim2.new(1, -30, 0, 25)
     titleLabel.Position = UDim2.new(0, 10, 0, 5)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = "[" .. title .. "]"
@@ -1238,8 +992,8 @@ function Library:Notification(title, message, duration)
     titleLabel.Parent = notifFrame
     
     local messageLabel = Instance.new("TextLabel")
-    messageLabel.Size = UDim2.new(1, -20, 0, 30)
-    messageLabel.Position = UDim2.new(0, 10, 0, 25)
+    messageLabel.Size = UDim2.new(1, -30, 0, 35)
+    messageLabel.Position = UDim2.new(0, 10, 0, 30)
     messageLabel.BackgroundTransparency = 1
     messageLabel.Text = message
     messageLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -1250,8 +1004,8 @@ function Library:Notification(title, message, duration)
     messageLabel.Parent = notifFrame
     
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 20, 0, 20)
-    closeBtn.Position = UDim2.new(1, -25, 0, 5)
+    closeBtn.Size = UDim2.new(0, 25, 0, 25)
+    closeBtn.Position = UDim2.new(1, -30, 0, 5)
     closeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     closeBtn.BorderSizePixel = 1
     closeBtn.BorderColor3 = CurrentColor
@@ -1263,7 +1017,7 @@ function Library:Notification(title, message, duration)
     
     table.insert(Notifications, notifFrame)
     
-    animate(notifFrame, {Size = UDim2.new(0, 300, 0, 65)}, 0.3)
+    animate(notifFrame, {Size = UDim2.new(0, 320, 0, 75)}, 0.3)
     
     closeBtn.MouseButton1Click:Connect(function()
         for i, notif in ipairs(Notifications) do
@@ -1273,12 +1027,12 @@ function Library:Notification(title, message, duration)
             end
         end
         
-        animate(notifFrame, {Size = UDim2.new(0, 300, 0, 0), BackgroundTransparency = 1}, 0.2)
+        animate(notifFrame, {Size = UDim2.new(0, 320, 0, 0), BackgroundTransparency = 1}, 0.2)
         task.wait(0.2)
         notificationGui:Destroy()
         
         for i, notif in ipairs(Notifications) do
-            animate(notif, {Position = UDim2.new(1, -320, 0, 20 + (i - 1) * 70)}, 0.2)
+            animate(notif, {Position = UDim2.new(1, -340, 0, 20 + (i - 1) * 80)}, 0.2)
         end
     end)
     
@@ -1292,12 +1046,12 @@ function Library:Notification(title, message, duration)
                 end
             end
             
-            animate(notifFrame, {Size = UDim2.new(0, 300, 0, 0), BackgroundTransparency = 1}, 0.2)
+            animate(notifFrame, {Size = UDim2.new(0, 320, 0, 0), BackgroundTransparency = 1}, 0.2)
             task.wait(0.2)
             notificationGui:Destroy()
             
             for i, notif in ipairs(Notifications) do
-                animate(notif, {Position = UDim2.new(1, -320, 0, 20 + (i - 1) * 70)}, 0.2)
+                animate(notif, {Position = UDim2.new(1, -340, 0, 20 + (i - 1) * 80)}, 0.2)
             end
         end
     end
