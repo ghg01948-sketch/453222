@@ -23,6 +23,10 @@ local HideButton = nil
 local Notifications = {}
 local FPS = 0
 local Memory = 0
+local Resizing = false
+local ResizeDirection = nil
+local MinSize = Vector2.new(400, 350)
+local MaxSize = Vector2.new(1200, 800)
 
 -- Анимационные функции
 local function animate(object, properties, duration, easingStyle, easingDirection)
@@ -32,13 +36,144 @@ local function animate(object, properties, duration, easingStyle, easingDirectio
     return tween
 end
 
--- Мониторинг производительности
-spawn(function()
-    while GUI.Parent do
-        FPS = math.floor(1 / RunService.RenderStepped:Wait())
-        Memory = math.floor(gcinfo() * 10) / 10
+-- Функция для создания полосы изменения размера
+local function createResizeHandles(frame)
+    -- Правая сторона
+    local rightHandle = Instance.new("Frame")
+    rightHandle.Name = "RightResizeHandle"
+    rightHandle.Size = UDim2.new(0, 5, 1, -10)
+    rightHandle.Position = UDim2.new(1, -5, 0, 5)
+    rightHandle.BackgroundColor3 = CurrentColor
+    rightHandle.BackgroundTransparency = 0.8
+    rightHandle.BorderSizePixel = 0
+    rightHandle.Parent = frame
+    rightHandle.Visible = true
+    
+    -- Нижняя сторона
+    local bottomHandle = Instance.new("Frame")
+    bottomHandle.Name = "BottomResizeHandle"
+    bottomHandle.Size = UDim2.new(1, -10, 0, 5)
+    bottomHandle.Position = UDim2.new(0, 5, 1, -5)
+    bottomHandle.BackgroundColor3 = CurrentColor
+    bottomHandle.BackgroundTransparency = 0.8
+    bottomHandle.BorderSizePixel = 0
+    bottomHandle.Parent = frame
+    bottomHandle.Visible = true
+    
+    -- Угол (правый нижний)
+    local cornerHandle = Instance.new("Frame")
+    cornerHandle.Name = "CornerResizeHandle"
+    cornerHandle.Size = UDim2.new(0, 10, 0, 10)
+    cornerHandle.Position = UDim2.new(1, -10, 1, -10)
+    cornerHandle.BackgroundColor3 = CurrentColor
+    cornerHandle.BackgroundTransparency = 0.5
+    cornerHandle.BorderSizePixel = 0
+    cornerHandle.Parent = frame
+    cornerHandle.Visible = true
+    
+    -- Добавляем иконку в угол
+    local cornerIcon = Instance.new("TextLabel")
+    cornerIcon.Size = UDim2.new(1, 0, 1, 0)
+    cornerIcon.BackgroundTransparency = 1
+    cornerIcon.Text = "◢"
+    cornerIcon.TextColor3 = CurrentColor
+    cornerIcon.TextSize = 8
+    cornerIcon.Font = Enum.Font.Code
+    cornerIcon.Parent = cornerHandle
+    
+    -- Функции для ресайза
+    local function startResize(direction)
+        return function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                Resizing = true
+                ResizeDirection = direction
+                
+                -- Подсветка при ресайзе
+                rightHandle.BackgroundTransparency = 0.3
+                bottomHandle.BackgroundTransparency = 0.3
+                cornerHandle.BackgroundTransparency = 0.3
+            end
+        end
     end
-end)
+    
+    local function resize(input)
+        if not Resizing or not ResizeDirection then return end
+        
+        local mousePos = input.Position
+        local framePos = frame.AbsolutePosition
+        local frameSize = frame.AbsoluteSize
+        local newSize = frameSize
+        
+        if ResizeDirection == "right" or ResizeDirection == "corner" then
+            newSize = Vector2.new(
+                math.clamp(mousePos.X - framePos.X, MinSize.X, MaxSize.X),
+                frameSize.Y
+            )
+        end
+        
+        if ResizeDirection == "bottom" or ResizeDirection == "corner" then
+            newSize = Vector2.new(
+                frameSize.X,
+                math.clamp(mousePos.Y - framePos.Y, MinSize.Y, MaxSize.Y)
+            )
+        end
+        
+        if ResizeDirection == "corner" then
+            newSize = Vector2.new(
+                math.clamp(mousePos.X - framePos.X, MinSize.X, MaxSize.X),
+                math.clamp(mousePos.Y - framePos.Y, MinSize.Y, MaxSize.Y)
+            )
+        end
+        
+        frame.Size = UDim2.new(0, newSize.X, 0, newSize.Y)
+        
+        -- Обновляем позицию ColumnsFrame при ресайзе
+        if ColumnsFrame then
+            ColumnsFrame.Size = UDim2.new(1, -20, 1, -150)
+        end
+    end
+    
+    local function endResize()
+        Resizing = false
+        ResizeDirection = nil
+        rightHandle.BackgroundTransparency = 0.8
+        bottomHandle.BackgroundTransparency = 0.8
+        cornerHandle.BackgroundTransparency = 0.5
+    end
+    
+    -- Подключаем события
+    rightHandle.InputBegan:Connect(startResize("right"))
+    bottomHandle.InputBegan:Connect(startResize("bottom"))
+    cornerHandle.InputBegan:Connect(startResize("corner"))
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if Resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            resize(input)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            endResize()
+        end
+    end)
+    
+    -- Hover эффекты
+    local function onHandleHover(handle, transparency)
+        return function()
+            if not Resizing then
+                animate(handle, {BackgroundTransparency = transparency}, 0.1)
+            end
+        end
+    end
+    
+    rightHandle.MouseEnter:Connect(onHandleHover(rightHandle, 0.5))
+    rightHandle.MouseLeave:Connect(onHandleHover(rightHandle, 0.8))
+    bottomHandle.MouseEnter:Connect(onHandleHover(bottomHandle, 0.5))
+    bottomHandle.MouseLeave:Connect(onHandleHover(bottomHandle, 0.8))
+    cornerHandle.MouseEnter:Connect(onHandleHover(cornerHandle, 0.2))
+    cornerHandle.MouseLeave:Connect(onHandleHover(cornerHandle, 0.5))
+end
 
 function Library:CreateLib(title, theme)
     MainFrame = Instance.new("Frame")
@@ -51,6 +186,9 @@ function Library:CreateLib(title, theme)
     MainFrame.Parent = GUI
     MainFrame.Active = true
     MainFrame.ClipsDescendants = true
+    
+    -- Создаем ручки для изменения размера
+    createResizeHandles(MainFrame)
     
     -- Title Bar
     local titleBar = Instance.new("Frame")
@@ -126,6 +264,8 @@ function Library:CreateLib(title, theme)
     -- Обновление статуса
     spawn(function()
         while GUI.Parent do
+            FPS = math.floor(1 / RunService.RenderStepped:Wait())
+            Memory = math.floor(gcinfo() * 10) / 10
             statusText.Text = string.format("> SYSTEM: ONLINE | FPS: %d | MEMORY: %.1f MB", FPS, Memory)
             wait(0.5)
         end
@@ -170,14 +310,14 @@ function Library:CreateLib(title, theme)
     helpText.Size = UDim2.new(1, -10, 1, 0)
     helpText.Position = UDim2.new(0, 5, 0, 0)
     helpText.BackgroundTransparency = 1
-    helpText.Text = "[RIGHT CTRL] TOGGLE | [ESC] CLOSE"
+    helpText.Text = "[RIGHT CTRL] TOGGLE | [ESC] CLOSE | DRAG CORNER TO RESIZE"
     helpText.TextColor3 = InactiveColor
     helpText.TextSize = 10
     helpText.Font = Enum.Font.Code
     helpText.TextXAlignment = Enum.TextXAlignment.Left
     helpText.Parent = bottomFrame
     
-    -- Dragging
+    -- Dragging (перетаскивание всего окна)
     local dragging = false
     local dragStart, startPos
     
@@ -208,6 +348,81 @@ function Library:CreateLib(title, theme)
             titleBar.BorderColor3 = CurrentColor
         end
     end)
+    
+    -- Функционал для перемещения элементов внутри секций
+    local function makeElementDraggable(element, elementType, section)
+        local dragHandle = Instance.new("Frame")
+        dragHandle.Name = "DragHandle"
+        dragHandle.Size = UDim2.new(0, 20, 1, 0)
+        dragHandle.Position = UDim2.new(0, 0, 0, 0)
+        dragHandle.BackgroundColor3 = CurrentColor
+        dragHandle.BackgroundTransparency = 0.9
+        dragHandle.BorderSizePixel = 0
+        dragHandle.Parent = element
+        dragHandle.ZIndex = 10
+        
+        local dragIcon = Instance.new("TextLabel")
+        dragIcon.Size = UDim2.new(1, 0, 1, 0)
+        dragIcon.BackgroundTransparency = 1
+        dragIcon.Text = "⋮⋮"
+        dragIcon.TextColor3 = CurrentColor
+        dragIcon.TextSize = 12
+        dragIcon.Font = Enum.Font.Code
+        dragIcon.Parent = dragHandle
+        dragIcon.ZIndex = 11
+        
+        local dragging = false
+        local startY, elementPos
+        
+        dragHandle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                startY = input.Position.Y
+                elementPos = element.Position
+                animate(dragHandle, {BackgroundTransparency = 0.5}, 0.1)
+                element.ZIndex = 100
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local deltaY = input.Position.Y - startY
+                local newPos = UDim2.new(0, elementPos.X.Offset, 0, elementPos.Y.Offset + deltaY)
+                
+                -- Ограничиваем перемещение в пределах секции
+                if section then
+                    local sectionSize = section.AbsoluteSize.Y
+                    local elementHeight = element.AbsoluteSize.Y
+                    newPos = UDim2.new(0, elementPos.X.Offset, 0, math.clamp(elementPos.Y.Offset + deltaY, 0, sectionSize - elementHeight))
+                end
+                
+                element.Position = newPos
+            end
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 and dragging then
+                dragging = false
+                animate(dragHandle, {BackgroundTransparency = 0.9}, 0.1)
+                element.ZIndex = 1
+            end
+        end)
+        
+        dragHandle.MouseEnter:Connect(function()
+            if not dragging then
+                animate(dragHandle, {BackgroundTransparency = 0.7}, 0.1)
+            end
+        end)
+        
+        dragHandle.MouseLeave:Connect(function()
+            if not dragging then
+                animate(dragHandle, {BackgroundTransparency = 0.9}, 0.1)
+            end
+        end)
+    end
+    
+    -- Сохраняем функцию для использования в секциях
+    Library.MakeElementDraggable = makeElementDraggable
     
     -- Hide/show functionality
     HideButton.MouseButton1Click:Connect(function()
@@ -449,9 +664,12 @@ function Library:NewTab(name)
             buttonFrame.BorderColor3 = InactiveColor
             buttonFrame.Parent = sectionContent
             
+            -- Добавляем возможность перетаскивания для кнопок
+            Library.MakeElementDraggable(buttonFrame, "Button", sectionContent)
+            
             local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -30, 0, 20)
-            nameLabel.Position = UDim2.new(0, 5, 0, 3)
+            nameLabel.Size = UDim2.new(1, -50, 0, 20)
+            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. buttonName
             nameLabel.TextColor3 = CurrentColor
@@ -461,8 +679,8 @@ function Library:NewTab(name)
             nameLabel.Parent = buttonFrame
             
             local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -30, 0, 12)
-            descLabel.Position = UDim2.new(0, 5, 0, 23)
+            descLabel.Size = UDim2.new(1, -50, 0, 12)
+            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "execute")
             descLabel.TextColor3 = InactiveColor
@@ -523,9 +741,12 @@ function Library:NewTab(name)
             toggleFrame.BorderColor3 = InactiveColor
             toggleFrame.Parent = sectionContent
             
+            -- Добавляем возможность перетаскивания для тогглов
+            Library.MakeElementDraggable(toggleFrame, "Toggle", sectionContent)
+            
             local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, -80, 0, 20)
-            nameLabel.Position = UDim2.new(0, 5, 0, 3)
+            nameLabel.Size = UDim2.new(1, -100, 0, 20)
+            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. toggleName
             nameLabel.TextColor3 = CurrentColor
@@ -535,8 +756,8 @@ function Library:NewTab(name)
             nameLabel.Parent = toggleFrame
             
             local descLabel = Instance.new("TextLabel")
-            descLabel.Size = UDim2.new(1, -80, 0, 12)
-            descLabel.Position = UDim2.new(0, 5, 0, 23)
+            descLabel.Size = UDim2.new(1, -100, 0, 12)
+            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "toggle")
             descLabel.TextColor3 = InactiveColor
@@ -545,7 +766,7 @@ function Library:NewTab(name)
             descLabel.TextXAlignment = Enum.TextXAlignment.Left
             descLabel.Parent = toggleFrame
             
-            -- Визуальный переключатель (не текст)
+            -- Визуальный переключатель
             local toggleSwitch = Instance.new("Frame")
             toggleSwitch.Size = UDim2.new(0, 40, 0, 20)
             toggleSwitch.Position = UDim2.new(1, -45, 0.5, -10)
@@ -571,7 +792,6 @@ function Library:NewTab(name)
             
             local function updateToggle()
                 if toggleState then
-                    -- Включено: белый индикатор справа
                     animate(toggleIndicator, {
                         Position = UDim2.new(1, -18, 0.5, -8),
                         BackgroundColor3 = CurrentColor,
@@ -579,7 +799,6 @@ function Library:NewTab(name)
                     }, 0.2)
                     animate(toggleSwitch, {BorderColor3 = CurrentColor}, 0.2)
                 else
-                    -- Выключено: серый индикатор слева
                     animate(toggleIndicator, {
                         Position = UDim2.new(0, 2, 0.5, -8),
                         BackgroundColor3 = Color3.fromRGB(80, 80, 80),
@@ -618,9 +837,12 @@ function Library:NewTab(name)
             sliderFrame.BorderColor3 = InactiveColor
             sliderFrame.Parent = sectionContent
             
+            -- Добавляем возможность перетаскивания для слайдеров
+            Library.MakeElementDraggable(sliderFrame, "Slider", sectionContent)
+            
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -70, 0, 20)
-            nameLabel.Position = UDim2.new(0, 5, 0, 3)
+            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. sliderName
             nameLabel.TextColor3 = CurrentColor
@@ -631,7 +853,7 @@ function Library:NewTab(name)
             
             local descLabel = Instance.new("TextLabel")
             descLabel.Size = UDim2.new(1, -70, 0, 12)
-            descLabel.Position = UDim2.new(0, 5, 0, 23)
+            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "adjust")
             descLabel.TextColor3 = InactiveColor
@@ -653,8 +875,8 @@ function Library:NewTab(name)
             valueLabel.Parent = sliderFrame
             
             local sliderBg = Instance.new("Frame")
-            sliderBg.Size = UDim2.new(1, -60, 0, 4)
-            sliderBg.Position = UDim2.new(0, 5, 0, 45)
+            sliderBg.Size = UDim2.new(1, -80, 0, 4)
+            sliderBg.Position = UDim2.new(0, 25, 0, 45) -- Сдвигаем вправо из-за drag handle
             sliderBg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
             sliderBg.BorderSizePixel = 1
             sliderBg.BorderColor3 = InactiveColor
@@ -735,6 +957,9 @@ function Library:NewTab(name)
             dropdownFrame.Parent = sectionContent
             dropdownFrame.ClipsDescendants = true
             
+            -- Добавляем возможность перетаскивания для дропдаунов
+            Library.MakeElementDraggable(dropdownFrame, "Dropdown", sectionContent)
+            
             local dropdownButton = Instance.new("TextButton")
             dropdownButton.Size = UDim2.new(1, 0, 0, 40)
             dropdownButton.Position = UDim2.new(0, 0, 0, 0)
@@ -744,7 +969,7 @@ function Library:NewTab(name)
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Size = UDim2.new(1, -50, 0, 20)
-            nameLabel.Position = UDim2.new(0, 5, 0, 3)
+            nameLabel.Position = UDim2.new(0, 25, 0, 3) -- Сдвигаем вправо из-за drag handle
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "> " .. dropdownName
             nameLabel.TextColor3 = CurrentColor
@@ -755,7 +980,7 @@ function Library:NewTab(name)
             
             local descLabel = Instance.new("TextLabel")
             descLabel.Size = UDim2.new(1, -50, 0, 12)
-            descLabel.Position = UDim2.new(0, 5, 0, 23)
+            descLabel.Position = UDim2.new(0, 25, 0, 23) -- Сдвигаем вправо из-за drag handle
             descLabel.BackgroundTransparency = 1
             descLabel.Text = "  " .. (description or "expand")
             descLabel.TextColor3 = InactiveColor
@@ -951,16 +1176,18 @@ function Library:NewTab(name)
         
         function SectionObject:NewTextBlock(text)
             local textFrame = Instance.new("Frame")
-            textFrame.Size = UDim2.new(1, 0, 0, 0)
+            textFrame.Size = UDim2.new(1, 0, 0, 60) -- Фиксированная высота вместо AutomaticSize
             textFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             textFrame.BorderSizePixel = 1
             textFrame.BorderColor3 = InactiveColor
             textFrame.Parent = sectionContent
-            textFrame.AutomaticSize = Enum.AutomaticSize.Y
+            
+            -- Добавляем возможность перетаскивания для текстовых блоков
+            Library.MakeElementDraggable(textFrame, "TextBlock", sectionContent)
             
             local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, -20, 0, 0)
-            textLabel.Position = UDim2.new(0, 10, 0, 10)
+            textLabel.Size = UDim2.new(1, -40, 1, -20) -- Заполняет весь фрейм с отступами
+            textLabel.Position = UDim2.new(0, 30, 0, 10)
             textLabel.BackgroundTransparency = 1
             textLabel.Text = text or ""
             textLabel.TextColor3 = CurrentColor
@@ -969,7 +1196,6 @@ function Library:NewTab(name)
             textLabel.TextWrapped = true
             textLabel.TextXAlignment = Enum.TextXAlignment.Left
             textLabel.TextYAlignment = Enum.TextYAlignment.Top
-            textLabel.AutomaticSize = Enum.AutomaticSize.Y
             textLabel.Parent = textFrame
             
             return SectionObject
