@@ -1176,18 +1176,19 @@ function Library:NewTab(name)
         
         function SectionObject:NewTextBlock(text)
             local textFrame = Instance.new("Frame")
-            textFrame.Size = UDim2.new(1, 0, 0, 60) -- Фиксированная высота вместо AutomaticSize
+            textFrame.Size = UDim2.new(1, 0, 0, 0)
             textFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             textFrame.BorderSizePixel = 1
             textFrame.BorderColor3 = InactiveColor
             textFrame.Parent = sectionContent
+            textFrame.AutomaticSize = Enum.AutomaticSize.Y
             
             -- Добавляем возможность перетаскивания для текстовых блоков
             Library.MakeElementDraggable(textFrame, "TextBlock", sectionContent)
             
             local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, -40, 1, -20) -- Заполняет весь фрейм с отступами
-            textLabel.Position = UDim2.new(0, 30, 0, 10)
+            textLabel.Size = UDim2.new(1, -40, 0, 0) -- Уменьшаем ширину из-за drag handle
+            textLabel.Position = UDim2.new(0, 30, 0, 10) -- Сдвигаем вправо
             textLabel.BackgroundTransparency = 1
             textLabel.Text = text or ""
             textLabel.TextColor3 = CurrentColor
@@ -1196,6 +1197,7 @@ function Library:NewTab(name)
             textLabel.TextWrapped = true
             textLabel.TextXAlignment = Enum.TextXAlignment.Left
             textLabel.TextYAlignment = Enum.TextYAlignment.Top
+            textLabel.AutomaticSize = Enum.AutomaticSize.Y
             textLabel.Parent = textFrame
             
             return SectionObject
